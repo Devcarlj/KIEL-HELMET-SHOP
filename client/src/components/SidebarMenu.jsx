@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import logo from '../assets/KielHelmetShop.png'
 import UserMenu from './UserMenu'
@@ -7,6 +7,7 @@ import { FaRegUserCircle } from "react-icons/fa"
 
 const SidebarMenu = ({ isOpen, onClose }) => {
     const user = useSelector(state => state.user)
+    const navigate = useNavigate()
 
     // Prevent body scrolling when drawer is open
     useEffect(() => {
@@ -65,7 +66,7 @@ const SidebarMenu = ({ isOpen, onClose }) => {
                             <h3 className='font-bold text-brand-primary mb-2'>Welcome to Kiel Helmet Shop</h3>
                             <p className='text-xs text-brand-text/70 mb-6'>Login to manage your orders, profile and more.</p>
                             <button
-                                onClick={() => { onClose(); window.location.href = '/login' }}
+                                onClick={() => { onClose(); navigate('/login') }}
                                 className='w-full py-2.5 bg-brand-primary text-brand-cream rounded-lg font-bold text-sm shadow-md'
                             >
                                 Login / Register
