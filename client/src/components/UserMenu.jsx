@@ -1,0 +1,186 @@
+import React from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { logout } from '../store/userSlice'
+import { clearCart } from '../store/cartSlice'
+import { HiOutlineExternalLink, HiOutlineHome } from "react-icons/hi";
+import { FaRegUserCircle } from "react-icons/fa";
+import isAdmin from '../utils/isAdmin'
+const UserMenu = ({ close, isSidebarMenu = false }) => {
+  const user = useSelector((state) => state.user)
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const handleLogout = () => {
+    dispatch(logout())
+    dispatch(clearCart())
+    localStorage.clear()
+    // Only call close if it was passed as a function
+    if (typeof close === 'function') close()
+    navigate("/")
+  }
+
+  const handleLinkClick = () => {
+    // This ensures the desktop menu closes when a link is clicked
+    if (typeof close === 'function') close()
+  }
+
+  const getLinkClass = (path) => {
+    const isActive = isSidebarMenu && location.pathname === path;
+    const baseClass = "transition-all flex items-center justify-between group text-sm";
+
+    if (isActive) {
+      return `${baseClass} px-3 py-2.5 rounded-lg bg-brand-secondary/10 text-brand-secondary font-bold shadow-sm`;
+    }
+
+    if (isSidebarMenu) {
+      return `${baseClass} px-3 py-2.5 rounded-lg hover:bg-brand-secondary/5 hover:text-brand-secondary text-brand-text`;
+    }
+
+    // Default / Old desktop style
+    return `${baseClass} px-2 py-2 rounded-md hover:bg-brand-secondary/5 hover:text-brand-secondary text-brand-text`;
+  }
+
+  return (
+    <div className={`flex flex-col text-brand-text w-full ${isSidebarMenu ? 'gap-1' : ''}`}>
+      {/* User Header Section with Avatar */}
+      <div className='px-2 pb-3 pt-1 flex items-center gap-3'>
+        <div onClick={() => {
+          if (typeof close === 'function') close();
+          navigate("/dashboard/profile");
+        }}
+          className='w-10 h-10 shrink-0 rounded-full overflow-hidden bg-brand-cream-dark flex items-center justify-center border border-brand-cream-dark cursor-pointer'>
+          {user?.avatar ? (
+            <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
+          ) : (
+            <FaRegUserCircle className="text-2xl text-gray-400" />
+          )}
+        </div>
+
+        <div className='flex flex-col min-w-0'>
+          <p className='font-bold text-brand-primary leading-tight truncate flex items-center gap-1.5'>
+            {user.name || "User"}
+            {isAdmin(user.role) && (
+              <span className='text-xs font-semibold text-brand-cream bg-brand-primary px-1.5 py-0.5 rounded-full leading-none'>
+                Admin
+              </span>
+            )}
+          </p>
+          <p className='text-xs text-gray-400 truncate'>
+            {user.email}
+          </p>
+        </div>
+      </div>
+
+      <hr className='border-brand-cream-dark mx-2 mb-1' />
+
+      {/* Navigation Links */}
+      <nav className={`flex flex-col ${isSidebarMenu ? 'gap-0.5 py-1' : 'py-2'}`}>
+        {isSidebarMenu && (
+          <Link
+            to="/"
+            onClick={handleLinkClick}
+            className={getLinkClass("/")}
+          >
+            Home
+            <HiOutlineHome className={`transition-opacity ${location.pathname === '/' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+        {isAdmin(user.role) && (
+          <Link
+            to="/dashboard/category"
+            onClick={handleLinkClick}
+            className={getLinkClass("/dashboard/category")}
+          >
+            Category
+            <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/category' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+
+        {isAdmin(user.role) && (
+          <Link
+            to="/dashboard/sub-category"
+            onClick={handleLinkClick}
+            className={getLinkClass("/dashboard/sub-category")}
+          >
+            Sub Category
+            <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/sub-category' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+
+        {isAdmin(user.role) && (
+          <Link
+            to="/dashboard/products"
+            onClick={handleLinkClick}
+            className={getLinkClass("/dashboard/products")}
+          >
+            Products
+            <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/products' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+
+        {isAdmin(user.role) && (
+          <Link
+            to="/dashboard/upload-product"
+            onClick={handleLinkClick}
+            className={getLinkClass("/dashboard/upload-product")}
+          >
+            Upload Product
+            <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/upload-product' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+
+        {isAdmin(user.role) && (
+          <Link
+            to="/dashboard/all-orders"
+            onClick={handleLinkClick}
+            className={getLinkClass("/dashboard/all-orders")}
+          >
+            All Orders
+            <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/all-orders' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+
+        <Link
+          to="/dashboard/profile"
+          onClick={handleLinkClick}
+          className={getLinkClass("/dashboard/profile")}
+        >
+          My Profile
+          <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/profile' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+        </Link>
+
+        <Link
+          to="/dashboard/my-orders"
+          onClick={handleLinkClick}
+          className={getLinkClass("/dashboard/my-orders")}
+        >
+          Order History
+          <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/my-orders' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+        </Link>
+
+        <Link
+          to="/dashboard/address"
+          onClick={handleLinkClick}
+          className={getLinkClass("/dashboard/address")}
+        >
+          Save Address
+          <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/address' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+        </Link>
+      </nav>
+
+      <hr className='border-gray-100' />
+
+      {/* Footer / Logout */}
+      <button
+        onClick={handleLogout}
+        className='mt-2 px-2 py-2 text-sm text-left text-red-500 hover:bg-red-50 rounded-md transition-all font-medium'
+      >
+        Log out
+      </button>
+    </div>
+  )
+}
+
+export default UserMenu

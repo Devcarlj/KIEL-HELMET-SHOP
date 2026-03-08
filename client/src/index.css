@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Barriecito&family=Edu+QLD+Hand:wght@400..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@theme {
+  /* 
+   * THEME: Sunset Garage
+   * Chaining colors for global consistency and easy maintenance.
+   */
+
+  /* Brand Colors */
+  --color-brand-primary: #8B2222;    /* Deep Rust/Red - Action/Buttons/Headers */
+  --color-brand-primary-dark: #6E1A1A;
+  --color-brand-secondary: #E66E33;  /* Sunset Orange - Atmosphere/Accents */
+  --color-brand-secondary-dark: #C65A1E;
+  --color-brand-cream: #FDF5E6;      /* Off-White/Cream - Background */
+  --color-brand-cream-dark: #F3EBDD;
+  --color-brand-text: #2D2926;       /* Neutral Typography */
+
+  /* Functional Mappings (Keeping existing names for compatibility but updated to new palette) */
+  --color-primary: var(--color-brand-primary);
+  --color-primary-light: var(--color-brand-secondary);
+  --color-secondary: var(--color-brand-secondary);
+  --color-secondary-light: var(--color-brand-accent, #E8A87C);
+
+  --color-cta-green: var(--color-brand-primary);   /* Primary Action (Red) */
+  --color-cta-yellow: var(--color-brand-secondary); /* Secondary Accents (Orange) */
+  --color-cta-orange: var(--color-brand-secondary);
+  
+  --color-trust-blue: #2563eb;
+  --color-urgency-red: #ef4444;
+  --color-luxury-black: #000000;
+  --color-luxury-gray: #a0a0a08e;
+
+  --color-facebook: #145DBF;
+  --color-linkedin: #004182;
+  --color-instagram: #e10e6d;
+
+  /* Custom Utilities */
+  --cta-yellow-border {
+    border-color: var(--color-brand-secondary);
+  }
+}
+
+body{
+  font-family: "Poppins", sans-serif;
+  font-weight: 400; /* Regular weight by default for readability */
+  font-style: normal;
+  @apply bg-brand-cream text-brand-text;
+} 
+
+/* Scrollbar Utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
