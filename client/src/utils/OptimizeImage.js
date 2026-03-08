@@ -5,6 +5,9 @@
 export const getOptimizedImageUrl = (url, { width, height, crop = 'scale', quality = 'auto', format = 'auto' } = {}) => {
     if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return url;
 
+    // Ensure we use https to avoid Mixed Content errors
+    url = url.replace('http://', 'https://');
+
     // If it's already optimized or has transformations, we need to be careful
     // But for simple Cloudinary URLs, we can inject transformations after 'upload/'
     if (!url.includes('upload/')) return url;
