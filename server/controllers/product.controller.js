@@ -47,9 +47,11 @@ export const createProductController = async (request, response) => {
 
 export const getProductController = async (request, response) => {
     try {
-        const { search } = request.query
+        const { search, _id } = request.query
         let query = {}
-        if (search) {
+        if (_id) {
+            query._id = _id
+        } else if (search) {
             query = {
                 $or: [
                     { name: { $regex: search, $options: "i" } },

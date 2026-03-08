@@ -9,16 +9,7 @@ import minuteDeliveryIcon from '../assets/minute_delivery.png'
 import bestPricesIcon from '../assets/Best_Prices_Offers.png'
 import wideAssortmentIcon from '../assets/Wide_Assortment.png'
 
-/**
- * Cloudinary Optimization Helper
- * This ensures we use f_auto (format), q_auto (quality) and optional width
- */
-const getOptimizedImageUrl = (url, width) => {
-  if (!url || typeof url !== 'string' || !url.includes('upload/')) return url
-  const [base, rest] = url.split('upload/')
-  const transforms = `f_auto,q_auto${width ? `,w_${width}` : ''}`
-  return `${base}upload/${transforms}/${rest}`
-}
+import { getOptimizedImageUrl } from '../utils/OptimizeImage'
 
 const DisplayProductPage = () => {
   const { productId } = useParams()
@@ -35,14 +26,11 @@ const DisplayProductPage = () => {
         setLoading(true)
         const response = await Axios({
           ...SummaryApi.getProduct,
-          params: {}
+          params: { _id: productId }
         })
 
-        if (response.data.success && Array.isArray(response.data.data)) {
-          const found = response.data.data.find(p => p._id === productId)
-          if (found) {
-            setProduct(found)
-          }
+        if (response.data.success && response.data.data.length > 0) {
+          setProduct(response.data.data[0])
         }
       } catch (error) {
         console.log('Error loading product details:', error)
@@ -85,9 +73,9 @@ const DisplayProductPage = () => {
       link.rel = 'preload'
       link.as = 'image'
       // Request optimized 800px width for preloading
-      link.href = getOptimizedImageUrl(activeImage, 800)
+      link.href = getOptimizedImageUrl(activeImage, { width: 800 })
       // Add responsive srcset for mobile discovery (e.g. w_400 for small screens)
-      link.setAttribute('imagesrcset', `${getOptimizedImageUrl(activeImage, 400)} 400w, ${getOptimizedImageUrl(activeImage, 800)} 800w`)
+      link.setAttribute('imagesrcset', `${getOptimizedImageUrl(activeImage, { width: 400 })} 400w, ${getOptimizedImageUrl(activeImage, { width: 800 })} 800w`)
       link.setAttribute('imagesizes', '(max-width: 768px) 400px, 800px')
       link.setAttribute('fetchPriority', 'high')
       document.head.appendChild(link)
@@ -146,8 +134,8 @@ const DisplayProductPage = () => {
             <div className='relative w-full aspect-square max-h-[280px] md:max-h-[450px] rounded-xl md:rounded-2xl bg-white border border-slate-100 overflow-hidden flex items-center justify-center shadow-sm'>
               {activeImage ? (
                 <img
-                  src={getOptimizedImageUrl(activeImage, 800)}
-                  srcSet={`${getOptimizedImageUrl(activeImage, 400)} 400w, ${getOptimizedImageUrl(activeImage, 800)} 800w`}
+                  src={getOptimizedImageUrl(activeImage, { width: 800 })}
+                  srcSet={`${getOptimizedImageUrl(activeImage, { width: 400 })} 400w, ${getOptimizedImageUrl(activeImage, { width: 800 })} 800w`}
                   sizes="(max-width: 768px) 400px, 800px"
                   alt={product.name}
                   fetchPriority="high"
@@ -197,7 +185,7 @@ const DisplayProductPage = () => {
                     className={`relative w-10 h-10 md:w-20 md:h-20 rounded-lg md:rounded-2xl border-2 overflow-hidden shrink-0 transition-all ${index === activeImageIndex ? 'border-primary ring-2 ring-primary/20' : 'border-white bg-white hover:border-slate-200'
                       }`}
                   >
-                    <img src={getOptimizedImageUrl(img, 200)} alt='thumb' className='w-full h-full object-scale-down p-1' />
+                    <img src={getOptimizedImageUrl(img, { width: 200 })} alt='thumb' className='w-full h-full object-scale-down p-1' />
                   </button>
                 ))}
               </div>

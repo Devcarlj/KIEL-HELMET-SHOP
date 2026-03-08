@@ -2,6 +2,7 @@ import React from 'react'
 import { DisplayPrice } from '../utils/DisplayPrice'
 import { Link } from 'react-router-dom'
 import AddToCartButton from './AddToCartButton'
+import { getOptimizedImageUrl } from '../utils/OptimizeImage'
 
 const CardProduct = ({ data }) => {
     const productImg = Array.isArray(data.image) ? data.image[0] : (data.image || "")
@@ -10,7 +11,7 @@ const CardProduct = ({ data }) => {
         <Link
             to={`/product/${data._id}`}
             state={{ product: data }}
-            className='min-w-[170px] md:min-w-[220px] max-w-[170px] md:max-w-[220px] bg-white group rounded-[2.5rem] p-4 border border-slate-100 hover:border-secondary/30 shadow-sm hover:shadow-2xl transition-all duration-500 relative flex flex-col'
+            className='min-w-[170px] md:min-w-[220px] max-w-[170px] md:max-w-[220px] bg-white group rounded-[2.5rem] p-4 border border-slate-100/50 hover:border-secondary/30 shadow-sm hover:shadow-2xl transition-all duration-500 relative flex flex-col'
         >
             {/* Discount Badge */}
             {data.discount > 0 && (
@@ -20,10 +21,11 @@ const CardProduct = ({ data }) => {
             )}
 
             {/* Image Container */}
-            <div className='relative w-full aspect-square rounded-[2rem] overflow-hidden bg-slate-50 border border-slate-100/50 mb-5 p-3 flex items-center justify-center transition-all duration-700 group-hover:bg-slate-100/50'>
+            <div className='relative w-full aspect-square rounded-[2rem] overflow-hidden bg-slate-50 border border-slate-100/30 mb-5 p-3 flex items-center justify-center transition-all duration-700 group-hover:bg-slate-100/50'>
                 <img
-                    src={productImg}
+                    src={getOptimizedImageUrl(productImg, { width: 400 })}
                     alt={data.name}
+                    loading='lazy'
                     className='w-full h-full object-scale-down transform transition-transform duration-1000 group-hover:scale-110 ease-out'
                 />
             </div>

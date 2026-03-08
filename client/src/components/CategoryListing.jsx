@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
+import { getOptimizedImageUrl } from '../utils/OptimizeImage'
 
 const CategoryListing = () => {
     const [categories, setCategories] = useState([])
@@ -51,7 +52,7 @@ const CategoryListing = () => {
                         >
                             <div className="w-14 h-14 md:w-24 md:h-24 bg-slate-50 rounded-2xl overflow-hidden mb-2 border border-blue-50 group-hover:border-secondary shadow-sm group-hover:shadow-md transition-all duration-300 flex items-center justify-center p-2">
                                 <img
-                                    src={category.image}
+                                    src={getOptimizedImageUrl(category.image, { width: 150 })}
                                     alt={category.name}
                                     className="w-full h-full object-scale-down group-hover:scale-110 transition-transform duration-500"
                                 />
