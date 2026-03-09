@@ -10,7 +10,7 @@ const resend = new Resend(process.env.RESEND_API);
 const sendEmail = async ({ sendTo, subject, html }) => {
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Kiel Helmet Shop <onboarding@resend.dev>',
+            from: 'Kiel Helmet Shop <support@kielhelmet.shop>',
             to: sendTo,
             subject: subject,
             html: html,
