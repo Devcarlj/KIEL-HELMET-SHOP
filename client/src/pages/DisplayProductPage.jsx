@@ -5,9 +5,9 @@ import SummaryApi from '../common/SummaryApi'
 import { DisplayPrice } from '../utils/DisplayPrice'
 import AddToCartButton from '../components/AddToCartButton'
 
-import minuteDeliveryIcon from '../assets/minute_delivery.png'
-import bestPricesIcon from '../assets/Best_Prices_Offers.png'
-import wideAssortmentIcon from '../assets/Wide_Assortment.png'
+import deliveryIcon from '../assets/delivery.png'
+import moneyIcon from '../assets/money.png'
+import assortmentIcon from '../assets/assortment.png'
 
 import { getOptimizedImageUrl } from '../utils/OptimizeImage'
 
@@ -326,17 +326,17 @@ const DisplayProductPage = () => {
           </h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8'>
             <div className='flex flex-col md:items-center md:text-center gap-4 p-5 md:p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group'>
-              <div className='w-12 h-12 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
-                <img src={minuteDeliveryIcon} alt='Delivery' className='w-7 h-7 md:w-10 md:h-10 object-contain' />
+              <div className='w-14 h-14 md:w-24 md:h-24 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
+                <img src={deliveryIcon} alt='Delivery' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
               </div>
               <div className='min-w-0'>
-                <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Super fast delivery</p>
-                <p className='text-xs md:text-sm text-slate-600 leading-relaxed'>To your doorstep in minutes, ensuring you get your gear exactly when you need it.</p>
+                <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Secured delivery</p>
+                <p className='text-xs md:text-sm text-slate-600 leading-relaxed'>We bring your gear straight to you with care, secure, and ready when you are.</p>
               </div>
             </div>
             <div className='flex flex-col md:items-center md:text-center gap-4 p-5 md:p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group'>
-              <div className='w-12 h-12 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
-                <img src={bestPricesIcon} alt='Prices' className='w-7 h-7 md:w-10 md:h-10 object-contain' />
+              <div className='w-14 h-14 md:w-24 md:h-24 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
+                <img src={moneyIcon} alt='Prices' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
               </div>
               <div className='min-w-0'>
                 <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Best prices & offers</p>
@@ -344,8 +344,8 @@ const DisplayProductPage = () => {
               </div>
             </div>
             <div className='flex flex-col md:items-center md:text-center gap-4 p-5 md:p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group'>
-              <div className='w-12 h-12 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
-                <img src={wideAssortmentIcon} alt='Assortment' className='w-7 h-7 md:w-10 md:h-10 object-contain' />
+              <div className='w-14 h-14 md:w-24 md:h-24 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
+                <img src={assortmentIcon} alt='Assortment' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
               </div>
               <div className='min-w-0'>
                 <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Wide assortment</p>

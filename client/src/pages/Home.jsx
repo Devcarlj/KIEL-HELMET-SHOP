@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import banner from '../assets/bannerg.png'
+import banner from '../assets/bannerg1.png'
 import bannerMobile from '../assets/banner-mobile1.png'
 import CategoryListing from '../components/CategoryListing.jsx'
 import CategoryWiseProductDisplay from '../components/CategoryWiseProductDisplay.jsx'

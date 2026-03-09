@@ -57,7 +57,7 @@ const CardProduct = ({ data }) => {
 
                     <div className='flex-shrink-0 ml-auto'>
                         {data.variations?.length > 0 ? (
-                            <div className='h-9 px-4 bg-slate-50 border-2 border-slate-100 text-slate-600 group-hover:bg-primary group-hover:border-primary group-hover:text-white rounded-2xl flex items-center justify-center gap-1.5 transition-all duration-300 active:scale-95 group-hover:-translate-y-1 font-black uppercase text-[10px] tracking-wider'>
+                            <div className='h-9 px-4 bg-primary border-2 border-primary text-white shadow-lg shadow-primary/20 rounded-2xl flex items-center justify-center gap-1.5 transition-all duration-300 active:scale-95 group-hover:-translate-y-1 font-black uppercase text-[10px] tracking-wider'>
                                 <span>Options</span>
                                 <svg className='w-3 h-3' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
                                     <path d='M9 5l7 7-7 7' />

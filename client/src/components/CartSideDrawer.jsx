@@ -16,6 +16,8 @@ import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import { GrCart } from "react-icons/gr"
 
+import emptyCartImage from '../assets/empty_cart.png'
+
 const CartSideDrawer = ({ isOpen, onClose }) => {
     const cart = useSelector(selectCart)
     const cartTotal = useSelector(selectCartTotal)
@@ -150,8 +152,12 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                 <div className='flex-1 overflow-y-auto px-5 py-4'>
                     {cart.length === 0 ? (
                         <div className='flex flex-col items-center justify-center h-full text-center py-16'>
-                            <div className='w-24 h-24 rounded-full bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center mb-5'>
-                                <GrCart className='text-4xl text-slate-300' />
+                            <div className='w-40 h-40 mb-5'>
+                                <img
+                                    src={emptyCartImage}
+                                    alt='Empty Cart'
+                                    className='w-full h-full object-contain'
+                                />
                             </div>
                             <h3 className='text-lg font-black text-slate-800 mb-1'>Your cart is empty</h3>
                             <p className='text-sm text-slate-500 mb-6 max-w-[200px]'>
