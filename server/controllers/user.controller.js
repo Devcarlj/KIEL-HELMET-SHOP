@@ -49,6 +49,7 @@ export async function registerUserController(request, response) {
         const save = await newUser.save();
 
         const verifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
+
         sendEmail({
             sendTo: email,
             subject: "Verify email from Kiel Helmet Shop",
@@ -57,7 +58,7 @@ export async function registerUserController(request, response) {
 
         // Return response immediately
         return response.json({
-            message: "User Register Successfully. Please check your email to verify before logging in.",
+            message: "User Register Successfully",
             error: false,
             success: true
         });
@@ -86,38 +87,21 @@ export async function verifyEmailController(request, response) {
             })
         }
 
-        const accessToken = await generatedAccessToken(user._id);
-        const refreshToken = await generatedRefereshToken(user._id);
-
-        await UserModel.findByIdAndUpdate(user._id, {
-            verify_email: true,
-            last_login_date: new Date()
-        });
-
-        const cookiesOption = {
-            httpOnly: true,
-            secure: true,
-            sameSite: "None"
-        }
-
-        response.cookie('accessToken', accessToken, cookiesOption);
-        response.cookie('refreshToken', refreshToken, cookiesOption);
+        const updateUser = await UserModel.updateOne({ _id: code }, {
+            verify_email: true
+        })
 
         return response.json({
-            message: "Email verified successfully",
-            success: true,
-            error: false,
-            data: {
-                accessToken,
-                refreshToken
-            }
+            message: "Verify email done",
+            sucess: true,
+            error: false
         })
 
     } catch (error) {
         return response.status(500).json({
             message: error.message || error,
             error: true,
-            success: false
+            sucess: true
         })
     }
 }
@@ -150,14 +134,6 @@ export async function loginController(request, response) {
         if (user.status !== "Active") {
             return response.status(400).json({
                 message: "Please Contact the Admin",
-                error: true,
-                success: false
-            });
-        }
-
-        if (!user.verify_email) {
-            return response.status(400).json({
-                message: "Please verify your email before logging in",
                 error: true,
                 success: false
             });
