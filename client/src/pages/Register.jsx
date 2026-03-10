@@ -51,7 +51,7 @@ const Register = () => {
             if (response.data.success) {
                 toast.success(response.data.message);
                 setData({ name: "", email: "", password: "", confirmPassword: "" });
-                navigate("/login");
+                navigate("/check-email");
             }
 
             if (response.data.error) {

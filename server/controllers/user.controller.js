@@ -93,7 +93,7 @@ export async function verifyEmailController(request, response) {
 
         return response.json({
             message: "Verify email done",
-            sucess: true,
+            success: true,
             error: false
         })
 
@@ -101,7 +101,7 @@ export async function verifyEmailController(request, response) {
         return response.status(500).json({
             message: error.message || error,
             error: true,
-            sucess: true
+            success: false
         })
     }
 }
@@ -134,6 +134,15 @@ export async function loginController(request, response) {
         if (user.status !== "Active") {
             return response.status(400).json({
                 message: "Please Contact the Admin",
+                error: true,
+                success: false
+            });
+        }
+
+        const featureStartDate = new Date("2026-03-09T00:00:00Z");
+        if (!user.verify_email && user.createdAt > featureStartDate) {
+            return response.status(400).json({
+                message: "Please verify your email to log in",
                 error: true,
                 success: false
             });

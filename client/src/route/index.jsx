@@ -9,6 +9,8 @@ import Register from '../pages/Register.jsx';
 import ForgotPassword from '../pages/ForgotPassword.jsx';
 import VerifyOtp from '../pages/VerifyOtp.jsx';
 import ResetPassword from '../pages/ResetPassword.jsx';
+import CheckEmail from '../pages/CheckEmail.jsx';
+import VerifyEmail from '../pages/VerifyEmail.jsx';
 import UserMenuMobile from '../pages/UserMenuMobile.jsx';
 import Dashboard from '../layouts/Dashboard.jsx';
 import Profile from '../pages/Profile.jsx';
@@ -61,6 +63,14 @@ const router = createBrowserRouter([
       {
         path: "forgot-password",
         element: <ForgotPassword />
+      },
+      {
+        path: "check-email",
+        element: <CheckEmail />
+      },
+      {
+        path: "verify-email",
+        element: <VerifyEmail />
       },
       {
         path: "verify-otp",

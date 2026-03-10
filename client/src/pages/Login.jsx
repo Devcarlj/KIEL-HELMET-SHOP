@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Axios from '../utils/Axios.js';
 import SummaryApi from '../common/SummaryApi.js';
@@ -14,6 +14,7 @@ const Login = () => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const [data, setData] = useState({
         email: "",
         password: "",
@@ -43,8 +44,6 @@ const Login = () => {
             });
 
             if (response.data.success) {
-                toast.success(response.data.message);
-
                 // 1. Save tokens
                 localStorage.setItem('accessToken', response.data.data.accessToken);
                 localStorage.setItem('refreshToken', response.data.data.refreshToken);
@@ -94,6 +93,7 @@ const Login = () => {
                     console.log("Login worked, but failed to fetch profile", err);
                 }
 
+                toast.success(response.data.message);
                 setData({ email: "", password: "" });
                 navigate("/");
             }
@@ -127,6 +127,11 @@ const Login = () => {
 
                 {/* FORM SECTION */}
                 <div className='p-8 bg-white'>
+                    {location.state?.message && (
+                        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-xl shadow-sm" role="alert">
+                            <p className="font-bold">{location.state.message}</p>
+                        </div>
+                    )}
                     <form className='grid gap-6' onSubmit={handleSubmit}>
 
                         {/* EMAIL */}
@@ -161,9 +166,9 @@ const Login = () => {
 
                         {/* SUBMIT BUTTON */}
                         <button
-                            type="submit" disabled={!validValue}
+                            type="submit" disabled={!validValue || loading}
                             className={`w-full py-4 mt-2 rounded-xl font-black text-lg text-white transition-all shadow-lg hover:shadow-brand-primary/20
-                                ${validValue ? "bg-brand-primary hover:bg-brand-primary-dark active:scale-[0.98] cursor-pointer" : "bg-slate-300 cursor-not-allowed shadow-none"}`}
+                                ${(validValue && !loading) ? "bg-brand-primary hover:bg-brand-primary-dark active:scale-[0.98] cursor-pointer" : "bg-slate-300 cursor-not-allowed shadow-none"}`}
                         >
                             {loading ? "Logging in..." : "LOG IN"}
                         </button>
