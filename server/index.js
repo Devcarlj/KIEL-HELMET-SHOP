@@ -37,13 +37,13 @@ const PORT = process.env.PORT || 8000
 
 // Add back the /api prefix because Vercel rewrites don't strip the path,
 // and we need it to match both locally (via Vite proxy) and in production.
-app.use('/api/user', userRouter)
-app.use('/api/category', categoryRouter)
-app.use('/api/file', uploadRouter)
-app.use('/api/sub-category', subCategoryRouter)
-app.use('/api/product', productRouter)
-app.use('/api/cart', cartRouter)
-app.use('/api/order', orderRouter)
+app.use('/user', userRouter)
+app.use('/category', categoryRouter)
+app.use('/file', uploadRouter)
+app.use('/sub-category', subCategoryRouter)
+app.use('/product', productRouter)
+app.use('/cart', cartRouter)
+app.use('/order', orderRouter)
 
 // Home route for the API specifically
 app.get("/api-status", (req, res) => {
