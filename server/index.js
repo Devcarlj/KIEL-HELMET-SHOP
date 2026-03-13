@@ -17,27 +17,13 @@ import { webhookStripe } from './controllers/order.controller.js'
 
 const app = express();
 
-const allowedOrigins = [
-    process.env.FRONTEND_URL,
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://www.kielhelmet.shop"
-].filter(Boolean);
-
+// Same-domain CORS is much faster
 app.use(cors({
     credentials: true,
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    }
-}))
+    origin: true
+}));
 
-// Stripe Webhook needs the raw body
+// Stripe Webhook (Keep this above express.json)
 app.post('/api/order/webhook', express.raw({ type: 'application/json' }), webhookStripe);
 
 app.use(express.json())
@@ -49,14 +35,8 @@ app.use(helmet({
 
 const PORT = process.env.PORT || 8000
 
-app.get("/", (request, response) => {
-    /// server to client side
-    response.json({
-        message: "Server is running " + PORT
-    })
-
-})
-
+// Add back the /api prefix because Vercel rewrites don't strip the path,
+// and we need it to match both locally (via Vite proxy) and in production.
 app.use('/api/user', userRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/file', uploadRouter)
@@ -65,9 +45,19 @@ app.use('/api/product', productRouter)
 app.use('/api/cart', cartRouter)
 app.use('/api/order', orderRouter)
 
-connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log('Server is running', PORT)
-    })
-})
+// Home route for the API specifically
+app.get("/api-status", (req, res) => {
+    res.json({ message: "Backend API is running" });
+});
 
+// Database & Export
+// We call connectDB but don't 'await' it here so the server starts faster
+connectDB();
+
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log('Local Server running on', PORT);
+    });
+}
+
+export default app;
