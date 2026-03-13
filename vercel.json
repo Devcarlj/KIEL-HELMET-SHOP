@@ -1,12 +1,19 @@
 {
     "version": 2,
-    "regions": ["hkg1"],
-    "buildCommand": "npm run build",
-    "outputDirectory": "client/dist",
+    "regions": [
+        "hkg1"
+    ],
     "builds": [
         {
             "src": "server/index.js",
             "use": "@vercel/node"
+        },
+        {
+            "src": "client/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
         }
     ],
     "routes": [
