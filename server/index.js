@@ -16,7 +16,6 @@ import orderRouter from './route/order.route.js'
 import { webhookStripe } from './controllers/order.controller.js'
 
 const app = express();
-const mainRouter = express.Router();
 
 // Same-domain CORS is much faster
 app.use(cors({
@@ -38,15 +37,13 @@ const PORT = process.env.PORT || 8000
 
 // Add back the /api prefix because Vercel rewrites don't strip the path,
 // and we need it to match both locally (via Vite proxy) and in production.
-mainRouter.use('/user', userRouter);
-mainRouter.use('/category', categoryRouter);
-mainRouter.use('/file', uploadRouter);
-mainRouter.use('/sub-category', subCategoryRouter);
-mainRouter.use('/product', productRouter);
-mainRouter.use('/cart', cartRouter);
-mainRouter.use('/order', orderRouter);
-
-app.use('/api', mainRouter);
+app.use('/user', userRouter)
+app.use('/category', categoryRouter)
+app.use('/file', uploadRouter)
+app.use('/sub-category', subCategoryRouter)
+app.use('/product', productRouter)
+app.use('/cart', cartRouter)
+app.use('/order', orderRouter)
 
 // Home route for the API specifically
 app.get("/api-status", (req, res) => {
