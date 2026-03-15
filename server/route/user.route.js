@@ -24,7 +24,7 @@ import { authLimiter } from '../middleware/rateLimiter.js';
 
 const userRouter = Router();
 userRouter.post('/register', registerUserController);
-userRouter.route('/verify-email').post(verifyEmailController).get(verifyEmailController);
+userRouter.post('/verify-email', verifyEmailController);
 userRouter.post('/login', authLimiter, loginController);
 userRouter.get('/logout', auth, logoutController);
 userRouter.put('/upload-avatar', auth, upload.single('avatar'), uploadUserAvatar);

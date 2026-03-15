@@ -48,7 +48,7 @@ export async function registerUserController(request, response) {
         const newUser = new UserModel(payLoad);
         const save = await newUser.save();
 
-        const verifyEmailUrl = `${process.env.FRONTEND_URL}/api/user/verify-email?code=${save?._id}`
+        const verifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
 
         try {
             await sendEmail({
@@ -78,50 +78,34 @@ export async function registerUserController(request, response) {
 
 export async function verifyEmailController(request, response) {
     try {
-        const code = request.body.code || request.query.code;
+        const { code } = request.body
 
-        if (!code) {
-            return response.status(400).json({
-                message: "Verification code is missing",
-                error: true,
-                success: false
-            });
-        }
-
-        const user = await UserModel.findOne({ _id: code });
+        const user = await UserModel.findOne({ _id: code })
 
         if (!user) {
             return response.status(400).json({
                 message: "Invalid code",
                 error: true,
                 success: false
-            });
+            })
         }
 
-        await UserModel.updateOne({ _id: code }, {
+        const updateUser = await UserModel.updateOne({ _id: code }, {
             verify_email: true
-        });
-
-        // If it's a GET request (clicked directly from email), redirect to frontend
-        if (request.method === "GET") {
-            return response.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
-        }
+        })
 
         return response.json({
             message: "Verify email done",
             success: true,
             error: false
-        });
+        })
 
     } catch (error) {
-        if (request.method === "GET") {
-            return response.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(error.message)}`);
-        }
         return response.status(500).json({
             message: error.message || error,
             error: true,
             success: false
-        });
+        })
     }
 }
 

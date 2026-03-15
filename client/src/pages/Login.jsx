@@ -132,11 +132,6 @@ const Login = () => {
                             <p className="font-bold">{location.state.message}</p>
                         </div>
                     )}
-                    {new URLSearchParams(location.search).get('verified') === 'true' && (
-                        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-xl shadow-sm" role="alert">
-                            <p className="font-bold">Your email has been successfully verified! You can now log in.</p>
-                        </div>
-                    )}
                     <form className='grid gap-6' onSubmit={handleSubmit}>
 
                         {/* EMAIL */}
