@@ -7,23 +7,34 @@ import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import fetchUserDetails from './utils/fetchUserData.js';
 import fetchCartItems from './utils/fetchCartItems.js';
-import { setUserDetails } from './store/userSlice.js'
+import { setUserDetails, setLoading } from './store/userSlice.js' // 👈 import setLoading
 import { setCart } from './store/cartSlice.js'
 import { useDispatch } from 'react-redux';
 
 import ScrollToTop from './components/ScrollToTop.jsx'
 
 function App() {
-    console.log('App component rendering');
     const dispatch = useDispatch()
+    
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
-        if (!token) return;
+        
+        if (!token) {
+            dispatch(setLoading(false)) // 👈 no token = no user, stop loading
+            return;
+        }
 
         const fetchUser = async () => {
-            const userData = await fetchUserDetails();
-            if (userData?.success) {
-                dispatch(setUserDetails(userData.data));
+            dispatch(setLoading(true)) // 👈 start loading
+            try {
+                const userData = await fetchUserDetails();
+                if (userData?.success) {
+                    dispatch(setUserDetails(userData.data));
+                }
+            } catch (error) {
+                console.error(error)
+            } finally {
+                dispatch(setLoading(false)) // 👈 always stop loading when done
             }
         };
 
@@ -49,7 +60,6 @@ function App() {
             <Footer />
             <Toaster />
         </>
-
     )
 }
 

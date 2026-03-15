@@ -28,9 +28,6 @@ import OrderSuccessPage from '../pages/OrderSuccessPage.jsx';
 import AdminOrders from '../pages/AdminOrders.jsx';
 import OrderDetails from '../pages/OrderDetails.jsx';
 
-
-
-
 const router = createBrowserRouter([
   {
     path: "/",
@@ -93,7 +90,7 @@ const router = createBrowserRouter([
         element: <OrderSuccessPage />
       },
       {
-        path: "/dashboard",
+        path: "dashboard",
         element: <Dashboard />,
         children: [
           {

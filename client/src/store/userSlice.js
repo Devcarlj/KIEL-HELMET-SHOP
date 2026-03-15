@@ -14,7 +14,7 @@ const initialValue = {
     forgot_password_otp: "",
     forgot_password_expiry: "",
     role: "",
-    loading: false,
+    loading: true,
     isLoggedIn: false
 
 }
@@ -29,6 +29,10 @@ const userSlice = createSlice({
             Object.assign(state, action.payload);
         },
 
+        setLoading: (state, action) => {
+            state.loading = action.payload
+        },
+
         updateAvatar: (state, action) => {
             state.avatar = action.payload
         },
@@ -40,14 +44,14 @@ const userSlice = createSlice({
         },
 
         logout: () => {
-            return { ...initialValue };
+            return { ...initialValue, loading: false };
         }
 
     }
 })
 
 
-export const { setUserDetails, logout, updateAvatar, deleteAddressAction } = userSlice.actions
+export const { setUserDetails, logout, updateAvatar, deleteAddressAction, setLoading } = userSlice.actions
 
 
 export default userSlice.reducer
