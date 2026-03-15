@@ -76,7 +76,7 @@ const SearchPage = () => {
   const hasResults = filteredProducts.length > 0
 
   return (
-    <section className='bg-white min-h-[78vh]'>
+    <section className='bg-white min-h-screen'>
       <div className='container mx-auto px-4 lg:px-6 py-4 md:py-6'>
         {/* Breadcrumb */}
         <div className='flex items-center gap-1 text-[11px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mb-3 md:mb-4'>
@@ -118,17 +118,17 @@ const SearchPage = () => {
             ))}
           </div>
         ) : searchTerm ? (
-          <div className='h-full flex flex-col items-center justify-center py-16 text-center'>
+          <div className='flex-1 flex flex-col items-center justify-start pt-10 md:pt-20 pb-32 text-center'>
             <img
               src={NoDataImage}
               alt='nothing here yet'
-              className='w-80 h-auto object-scale-down mb-2'
+              className='w-64 md:w-80 h-auto object-scale-down mb-6 opacity-80'
             />
-            <p className='text-sm md:text-base font-semibold text-slate-700 mb-1'>
-              No products found for "{searchTerm}".
+            <p className='text-base md:text-xl font-bold text-slate-800 mb-2'>
+              No products found for "{searchTerm}"
             </p>
-            <p className='text-xs md:text-sm text-slate-400 max-w-md'>
-              Try a different spelling or search for a more general term.
+            <p className='text-sm text-slate-400 max-w-md mx-auto'>
+              We couldn't find anything matching your search. Try checking your spelling or using more general keywords.
             </p>
           </div>
         ) : null}

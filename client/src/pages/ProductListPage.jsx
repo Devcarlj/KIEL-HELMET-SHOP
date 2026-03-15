@@ -69,7 +69,7 @@ const ProductListPage = () => {
   const hasSubCategories = subCategories.length > 0
 
   return (
-    <section className='bg-white min-h-[78vh]'>
+    <section className='bg-white min-h-screen'>
       <div className='container mx-auto px-4 lg:px-6 py-4 md:py-6'>
         {/* Breadcrumb / Header */}
         <div className='flex flex-col gap-2 mb-4 md:mb-6'>
@@ -183,13 +183,17 @@ const ProductListPage = () => {
                 ))}
               </div>
             ) : visibleProducts.length === 0 ? (
-              <div className='h-full flex flex-col items-center justify-center py-16 text-center'>
-                <p className='text-sm md:text-base font-semibold text-slate-700 mb-1'>
-                  No products found.
+              <div className='flex flex-col items-center justify-start pt-16 md:pt-24 pb-32 text-center'>
+                <p className='text-lg md:text-xl font-bold text-slate-800 mb-2'>
+                  No products found here
                 </p>
-                {hasSubCategories && selectedSubCategoryId !== 'all' && (
-                  <p className='text-xs text-slate-400'>
-                    Try selecting a different sub category.
+                {hasSubCategories && selectedSubCategoryId !== 'all' ? (
+                  <p className='text-sm text-slate-400'>
+                    Try selecting a different sub category to see more gear.
+                  </p>
+                ) : (
+                  <p className='text-sm text-slate-400'>
+                    Check back soon! We're always updating our inventory.
                   </p>
                 )}
               </div>

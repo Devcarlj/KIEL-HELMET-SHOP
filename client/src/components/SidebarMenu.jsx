@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import logo from '../assets/KielHelmetShop.png'
+import logo from '../assets/KielHelmetShop2.png'
 import UserMenu from './UserMenu'
+import defaultUserAvatar from '../assets/default_user_profiles.png'
 import { FaRegUserCircle } from "react-icons/fa"
 
 const SidebarMenu = ({ isOpen, onClose }) => {
@@ -36,12 +37,12 @@ const SidebarMenu = ({ isOpen, onClose }) => {
                     }`}
             >
                 {/* Header */}
-                <div className='flex items-center justify-between px-5 py-4 border-b border-brand-cream-dark bg-brand-primary text-brand-cream'>
+                <div className='flex items-center justify-between px-3 py-4 border-b border-brand-cream-dark bg-brand-primary text-brand-cream'>
                     <Link to="/" onClick={onClose} className='flex items-center gap-3'>
                         <img
                             src={logo}
                             alt='logo'
-                            className='h-7 w-auto'
+                            className='h-9 w-auto'
                         />
                     </Link>
                     <button
@@ -61,7 +62,7 @@ const SidebarMenu = ({ isOpen, onClose }) => {
                     ) : (
                         <div className='flex flex-col items-center justify-center py-10 px-4 text-center'>
                             <div className='w-16 h-16 bg-brand-cream-dark rounded-full flex items-center justify-center mb-4'>
-                                <FaRegUserCircle className='text-3xl text-brand-primary/60' />
+                                <img src={defaultUserAvatar} alt="Default User" className='w-full h-full object-cover rounded-full' />
                             </div>
                             <h3 className='font-bold text-brand-primary mb-2'>Welcome to Kiel Helmet Shop</h3>
                             <p className='text-xs text-brand-text/70 mb-6'>Login to manage your orders, profile and more.</p>

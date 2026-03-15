@@ -8,6 +8,7 @@ import { FaRegUserCircle } from "react-icons/fa";
 import isAdmin from '../utils/isAdmin'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
+import defaultUserAvatar from '../assets/default_user_profiles.png'
 
 const UserMenu = ({ close, isSidebarMenu = false }) => {
   const user = useSelector((state) => state.user)
@@ -82,7 +83,7 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
           {user?.avatar ? (
             <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
           ) : (
-            <FaRegUserCircle className="text-2xl text-gray-400" />
+            <img src={defaultUserAvatar} alt="Default User" className="w-full h-full object-cover" />
           )}
         </div>
 

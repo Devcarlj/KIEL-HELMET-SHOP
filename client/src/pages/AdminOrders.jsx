@@ -8,7 +8,8 @@ import NoData from '../components/NoData'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
 import DeleteOrderConfirm from '../components/DeleteOrderConfirm'
-import { HiOutlineSearch, HiOutlineFilter, HiOutlineExternalLink, HiOutlineUser, HiOutlineCalendar, HiOutlineCreditCard, HiOutlineTrash } from "react-icons/hi"
+import { HiOutlineSearch, HiOutlineFilter, HiOutlineExternalLink, HiOutlineCalendar, HiOutlineCreditCard, HiOutlineTrash } from "react-icons/hi"
+import defaultUserAvatar from '../assets/default_user_profiles.png'
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([])
@@ -203,8 +204,12 @@ const AdminOrders = () => {
                                         </td>
                                         <td className='p-5'>
                                             <div className='flex items-center gap-3'>
-                                                <div className='w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200'>
-                                                    {order.userId?.name?.charAt(0) || <HiOutlineUser />}
+                                                <div className='w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 overflow-hidden'>
+                                                    {order.userId?.avatar ? (
+                                                        <img src={order.userId.avatar} alt="User" className='w-full h-full object-cover' />
+                                                    ) : (
+                                                        <img src={defaultUserAvatar} alt="Default User" className='w-full h-full object-cover' />
+                                                    )}
                                                 </div>
                                                 <div className='flex flex-col'>
                                                     <span className='text-sm font-bold text-neutral-700'>{order.userId?.name || 'Deleted User'}</span>
@@ -305,8 +310,12 @@ const AdminOrders = () => {
                                 {/* Card Body */}
                                 <div className='p-4 space-y-4'>
                                     <div className='flex items-center gap-3'>
-                                        <div className='w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 flex-shrink-0'>
-                                            {order.userId?.name?.charAt(0) || 'U'}
+                                        <div className='w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 flex-shrink-0 overflow-hidden'>
+                                            {order.userId?.avatar ? (
+                                                <img src={order.userId.avatar} alt="User" className='w-full h-full object-cover' />
+                                            ) : (
+                                                <img src={defaultUserAvatar} alt="Default User" className='w-full h-full object-cover' />
+                                            )}
                                         </div>
                                         <div className='flex flex-col min-w-0'>
                                             <span className='text-sm font-bold text-neutral-700 truncate'>{order.userId?.name || 'Deleted User'}</span>

@@ -8,6 +8,7 @@ import SummaryApi from '../common/SummaryApi.js';
 import AxiosToastError from '../utils/AxiosToastError.js';
 import { updateAvatar, setUserDetails } from '../store/userSlice.js';
 import toast from 'react-hot-toast';
+import defaultUserAvatar from '../assets/default_user_profiles.png'
 
 const Profile = () => {
   const user = useSelector(state => state.user)
@@ -123,7 +124,7 @@ const Profile = () => {
             {user.avatar ? (
               <img src={user.avatar} alt="Profile" className='w-full h-full object-cover' />
             ) : (
-              <FaRegUserCircle className='text-6xl text-slate-300' />
+              <img src={defaultUserAvatar} alt="Default Profile" className='w-full h-full object-cover' />
             )}
           </div>
           <label htmlFor='profileImage' className='absolute bottom-0 right-0 p-2 bg-cta-green text-white rounded-full shadow-lg cursor-pointer'>

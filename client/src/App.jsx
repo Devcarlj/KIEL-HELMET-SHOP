@@ -54,7 +54,7 @@ function App() {
         <>
             <ScrollToTop />
             <Header />
-            <main className='min-h-[78vh]'>
+            <main className='min-h-screen'>
                 <Outlet />
             </main>
             <Footer />

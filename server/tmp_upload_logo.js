@@ -10,7 +10,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET_KEY.trim()
 });
 
-const logoPath = 'c:/VScodes/KIEL HELMET SHOP/client/src/assets/KielHelmetShop.png';
+const logoPath = 'c:/VScodes/KIEL HELMET SHOP/client/src/assets/KielHelmetShop2.png';
 
 async function upload() {
     try {

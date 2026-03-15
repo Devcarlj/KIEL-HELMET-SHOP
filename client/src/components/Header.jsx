@@ -8,6 +8,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FaChevronDown } from "react-icons/fa";
 import UserMenu from './UserMenu';
+import defaultUserAvatar from '../assets/default_user_profiles.png'
 import CartSideDrawer from './CartSideDrawer';
 import SidebarMenu from './SidebarMenu';
 import { selectCartItemCount, selectCartTotal } from '../store/cartSlice';
@@ -60,6 +61,7 @@ const Header = () => {
         <div className='container mx-auto px-4 w-full'>
           <div className='flex items-center justify-between gap-4 w-full'>
 
+            <div className='flex items-center gap-0 md:gap-2'> 
             {/* Hamburger Button (Mobile only) */}
             <div className='md:hidden'>
               <button
@@ -78,6 +80,8 @@ const Header = () => {
                 className='h-8 w-auto md:h-18 cursor-pointer'
               />
             </Link>
+            </div>
+
 
             {/* SECTION 2: SEARCH (Desktop) */}
             <div className='hidden md:block w-full max-w-xl'>
@@ -95,7 +99,7 @@ const Header = () => {
                   {user?.avatar ? (
                     <img src={user.avatar} alt="User" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
-                    <FaRegUserCircle />
+                    <img src={defaultUserAvatar} alt="Default User" className="w-8 h-8 rounded-full object-cover" />
                   )}
                 </div>
 

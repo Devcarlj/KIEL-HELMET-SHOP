@@ -27,6 +27,8 @@ import CheckoutPage from '../pages/CheckoutPage.jsx';
 import OrderSuccessPage from '../pages/OrderSuccessPage.jsx';
 import AdminOrders from '../pages/AdminOrders.jsx';
 import OrderDetails from '../pages/OrderDetails.jsx';
+import PrivacyPolicy from '../pages/PrivacyPolicy.jsx';
+import TermsOfService from '../pages/TermsOfService.jsx';
 
 const router = createBrowserRouter([
   {
@@ -88,6 +90,14 @@ const router = createBrowserRouter([
       {
         path: "order-success",
         element: <OrderSuccessPage />
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />
+      },
+      {
+        path: "terms-of-service",
+        element: <TermsOfService />
       },
       {
         path: "dashboard",
