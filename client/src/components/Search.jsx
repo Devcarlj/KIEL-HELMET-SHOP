@@ -77,10 +77,10 @@ const Search = ({ isMobile }) => {
                         <div className='absolute left-0 text-sm text-gray-400 pointer-events-none'>
                             <TypeAnimation
                                 sequence={[
-                                    'Search "milk"', 2000,
-                                    'Search "bread"', 2000,
-                                    'Search "sugar"', 2000,
-                                    'Search "chocolate"', 2000
+                                    'Search "helmet"', 2000,
+                                    'Search "top box"', 2000,
+                                    'Search "visor"', 2000,
+                                    'Search "intercom"', 2000
                                 ]}
                                 repeat={Infinity}
                             />

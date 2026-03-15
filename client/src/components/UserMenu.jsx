@@ -6,11 +6,15 @@ import { clearCart } from '../store/cartSlice'
 import { HiOutlineExternalLink, HiOutlineHome } from "react-icons/hi";
 import { FaRegUserCircle } from "react-icons/fa";
 import isAdmin from '../utils/isAdmin'
+import Axios from '../utils/Axios'
+import SummaryApi from '../common/SummaryApi'
+
 const UserMenu = ({ close, isSidebarMenu = false }) => {
   const user = useSelector((state) => state.user)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
+  const [unseenOrders, setUnseenOrders] = React.useState(0)
 
   const handleLogout = () => {
     dispatch(logout())
@@ -41,6 +45,30 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
     // Default / Old desktop style
     return `${baseClass} px-2 py-2 rounded-md hover:bg-brand-secondary/5 hover:text-brand-secondary text-brand-text`;
   }
+
+  const fetchUnseenCount = async () => {
+    try {
+      if (isAdmin(user.role)) {
+        const response = await Axios({
+          ...SummaryApi.getUnseenOrderCount
+        })
+        if (response.data.success) {
+          setUnseenOrders(response.data.data.count)
+        }
+      }
+    } catch (error) {
+      console.log("Error fetching unseen count", error)
+    }
+  }
+
+  React.useEffect(() => {
+    if (isAdmin(user.role)) {
+      fetchUnseenCount()
+      // Poll every 30 seconds for new orders
+      const interval = setInterval(fetchUnseenCount, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [user.role, location.pathname]) // Refresh when role changes or when navigating (e.g. back from details page)
 
   return (
     <div className={`flex flex-col text-brand-text w-full ${isSidebarMenu ? 'gap-1' : ''}`}>
@@ -137,7 +165,14 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
             onClick={handleLinkClick}
             className={getLinkClass("/dashboard/all-orders")}
           >
-            All Orders
+            <div className='flex items-center gap-2'>
+              All Orders
+              {unseenOrders > 0 && (
+                <span className='flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse'>
+                  {unseenOrders > 9 ? '9+' : unseenOrders}
+                </span>
+              )}
+            </div>
             <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/all-orders' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </Link>
         )}

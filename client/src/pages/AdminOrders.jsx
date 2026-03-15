@@ -189,7 +189,12 @@ const AdminOrders = () => {
                                     <tr key={order._id} className='hover:bg-neutral-50/50 transition-colors group'>
                                         <td className='p-5'>
                                             <div className='flex flex-col'>
-                                                <span className='text-sm font-bold text-neutral-800 group-hover:text-primary-200 transition-colors'>{order.orderId}</span>
+                                                <div className='flex items-center gap-2'>
+                                                    <span className='text-sm font-bold text-neutral-800 group-hover:text-primary-200 transition-colors'>{order.orderId}</span>
+                                                    {!order.isAdminSeen && (
+                                                        <span className='bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md animate-pulse uppercase tracking-tighter'>New</span>
+                                                    )}
+                                                </div>
                                                 <span className='text-[11px] text-neutral-400 flex items-center gap-1 mt-1'>
                                                     <HiOutlineCalendar className='w-3 h-3' />
                                                     {formatDate(order.createdAt)}
@@ -285,7 +290,12 @@ const AdminOrders = () => {
                                 <div className='p-4 border-b border-neutral-50 flex items-center justify-between bg-neutral-50/50'>
                                     <div className='flex flex-col'>
                                         <span className='text-[10px] font-bold text-neutral-400 uppercase tracking-widest'>Order ID</span>
-                                        <span className='text-sm font-bold text-neutral-800'>{order.orderId}</span>
+                                        <div className='flex items-center gap-2'>
+                                            <span className='text-sm font-bold text-neutral-800'>{order.orderId}</span>
+                                            {!order.isAdminSeen && (
+                                                <span className='bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md animate-pulse uppercase tracking-tighter'>New</span>
+                                            )}
+                                        </div>
                                     </div>
                                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getStatusStyles(order.orderStatus)}`}>
                                         {order.orderStatus}

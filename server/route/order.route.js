@@ -8,7 +8,9 @@ import {
     getAllOrdersController,
     getOrderDetailsByIdController,
     cancelOrderController,
-    deleteOrderController
+    deleteOrderController,
+    getUnseenOrderCountController,
+    markAllOrdersAsSeenController
 } from '../controllers/order.controller.js';
 import auth from '../middleware/auth.js';
 import admin from '../middleware/admin.js';
@@ -25,6 +27,8 @@ orderRouter.get('/all-orders', auth, admin, getAllOrdersController);
 orderRouter.put('/update-status/:id', auth, admin, updateOrderStatusController);
 orderRouter.get('/order-details/:id', auth, getOrderDetailsByIdController);
 orderRouter.put('/cancel-order/:id', auth, cancelOrderController);
+orderRouter.get('/unseen-count', auth, admin, getUnseenOrderCountController);
+orderRouter.put('/mark-as-seen', auth, admin, markAllOrdersAsSeenController);
 orderRouter.delete('/delete-order/:id', auth, admin, deleteOrderController);
 
 export default orderRouter;

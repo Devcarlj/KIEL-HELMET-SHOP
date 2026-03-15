@@ -310,6 +310,12 @@ export const getOrderDetailsByIdController = async (request, response) => {
             });
         }
 
+        // If admin is viewing, mark as seen
+        if (user.role === 'ADMIN' && !order.isAdminSeen) {
+            order.isAdminSeen = true;
+            await order.save();
+        }
+
         return response.json({
             message: "Order details fetched",
             error: false,
@@ -361,6 +367,7 @@ export const updateOrderStatusController = async (request, response) => {
 
         // Update the order
         order.orderStatus = status;
+        order.isAdminSeen = true; // Mark as seen since admin modified it
         if (trackingNumber !== undefined) {
             order.trackingNumber = trackingNumber;
         }
@@ -515,3 +522,43 @@ export const deleteOrderController = async (request, response) => {
         });
     }
 };
+
+// Get Count of Unseen Orders (Admin only)
+export const getUnseenOrderCountController = async (request, response) => {
+    try {
+        const count = await OrderModel.countDocuments({ isAdminSeen: false });
+
+        return response.json({
+            message: "Unseen order count fetched",
+            error: false,
+            success: true,
+            data: { count }
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+};
+
+// Mark All Orders as Seen (Admin only)
+export const markAllOrdersAsSeenController = async (request, response) => {
+    try {
+        await OrderModel.updateMany({ isAdminSeen: false }, { $set: { isAdminSeen: true } });
+
+        return response.json({
+            message: "All orders marked as seen",
+            error: false,
+            success: true
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+};
+

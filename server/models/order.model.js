@@ -80,6 +80,11 @@ const orderSchema = new mongoose.Schema({
         default: 0
     },
 
+    isAdminSeen: {
+        type: Boolean,
+        default: false
+    },
+
     trackingNumber: {
         type: String,
         default: ""

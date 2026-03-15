@@ -168,6 +168,14 @@ const SummaryApi = {
     deleteOrder: {
         url: '/api/order/delete-order',
         method: 'delete'
+    },
+    getUnseenOrderCount: {
+        url: '/api/order/unseen-count',
+        method: 'get'
+    },
+    markAllOrdersAsSeen: {
+        url: '/api/order/mark-as-seen',
+        method: 'put'
     }
 }
 export default SummaryApi

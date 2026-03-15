@@ -48,17 +48,20 @@ export async function registerUserController(request, response) {
         const newUser = new UserModel(payLoad);
         const save = await newUser.save();
 
-        const verifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
+        const verifyEmailUrl = `${process.env.FRONTEND_URL}/api/user/verify-email?code=${save?._id}`
 
-        sendEmail({
-            sendTo: email,
-            subject: "Verify email from Kiel Helmet Shop",
-            html: verifyEmailTemplate({ name, url: verifyEmailUrl })
-        }).catch(err => console.log("Email failed to send in background:", err));
+        try {
+            await sendEmail({
+                sendTo: email,
+                subject: "Verify email from Kiel Helmet Shop",
+                html: verifyEmailTemplate({ name, url: verifyEmailUrl })
+            });
+        } catch (error) {
+            console.log("Email failed to send:", error);
+        }
 
-        // Return response immediately
         return response.json({
-            message: "User Register Successfully",
+            message: "User Register Successfully. Please check your email to verify.",
             error: false,
             success: true
         });
@@ -75,34 +78,50 @@ export async function registerUserController(request, response) {
 
 export async function verifyEmailController(request, response) {
     try {
-        const { code } = request.body
+        const code = request.body.code || request.query.code;
 
-        const user = await UserModel.findOne({ _id: code })
+        if (!code) {
+            return response.status(400).json({
+                message: "Verification code is missing",
+                error: true,
+                success: false
+            });
+        }
+
+        const user = await UserModel.findOne({ _id: code });
 
         if (!user) {
             return response.status(400).json({
                 message: "Invalid code",
                 error: true,
                 success: false
-            })
+            });
         }
 
-        const updateUser = await UserModel.updateOne({ _id: code }, {
+        await UserModel.updateOne({ _id: code }, {
             verify_email: true
-        })
+        });
+
+        // If it's a GET request (clicked directly from email), redirect to frontend
+        if (request.method === "GET") {
+            return response.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
+        }
 
         return response.json({
             message: "Verify email done",
             success: true,
             error: false
-        })
+        });
 
     } catch (error) {
+        if (request.method === "GET") {
+            return response.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(error.message)}`);
+        }
         return response.status(500).json({
             message: error.message || error,
             error: true,
             success: false
-        })
+        });
     }
 }
 
@@ -363,14 +382,20 @@ export async function forgotPasswordController(request, response) {
         });
 
 
-        sendEmail({
-            sendTo: email,
-            subject: "Forgot password from Kiel Helmet Shop",
-            html: forgotPasswordTemplate({
-                name: user.name,
-                otp: otp
-            })
-        }).catch(err => console.error("Email failed:", err));
+        try {
+            await sendEmail({
+                sendTo: email,
+                subject: "Forgot password from Kiel Helmet Shop",
+                html: forgotPasswordTemplate({
+                    name: user.name,
+                    otp: otp
+                })
+            });
+        } catch (error) {
+            console.error("Email failed:", error);
+            // Even if it failed to send, you might still want to say 'Check your email'
+            // or perhaps return an error depending on desired UX.
+        }
 
         return response.json({
             message: "Check your email",

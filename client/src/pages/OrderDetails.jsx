@@ -8,6 +8,8 @@ import Loading from '../components/Loading'
 import { HiOutlineChevronLeft, HiOutlineExternalLink, HiOutlineCheckCircle, HiOutlineTruck, HiOutlineClock, HiOutlineBan, HiOutlineCog } from "react-icons/hi";
 import toast from 'react-hot-toast'
 import CancelOrderConfirm from '../components/CancelOrderConfirm'
+import { useSelector } from 'react-redux'
+import isAdmin from '../utils/isAdmin'
 
 const OrderDetails = () => {
     const { orderId } = useParams()
@@ -17,6 +19,9 @@ const OrderDetails = () => {
         isOpen: false,
         loading: false
     })
+    const user = useSelector(state => state.user)
+    const [updatingStatus, setUpdatingStatus] = useState(false)
+    const [trackingInput, setTrackingInput] = useState("")
 
     const handleCancelOrder = async () => {
         try {
@@ -48,11 +53,35 @@ const OrderDetails = () => {
             const { data } = response
             if (data.success) {
                 setOrder(data.data)
+                setTrackingInput(data.data.trackingNumber || "")
             }
         } catch (error) {
             AxiosToastError(error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const updateOrderStatus = async (status) => {
+        try {
+            setUpdatingStatus(true)
+            const response = await Axios({
+                ...SummaryApi.updateOrderStatus,
+                url: `${SummaryApi.updateOrderStatus.url}/${order._id}`,
+                data: { 
+                    status,
+                    trackingNumber: trackingInput
+                }
+            })
+
+            if (response.data.success) {
+                toast.success(response.data.message)
+                fetchOrderDetails()
+            }
+        } catch (error) {
+            AxiosToastError(error)
+        } finally {
+            setUpdatingStatus(false)
         }
     }
 
@@ -125,13 +154,32 @@ const OrderDetails = () => {
                 <div className='flex items-center justify-between mb-8'>
                     <h2 className='text-xl font-bold text-neutral-800'>Order Journey</h2>
                     <div className='flex items-center gap-3'>
-                        {order.orderStatus === 'pending' && (
-                            <button
-                                onClick={() => setCancelOrderModal({ ...cancelOrderModal, isOpen: true })}
-                                className='px-4 py-1.5 rounded-xl border border-rose-200 text-rose-600 font-bold text-[11px] uppercase tracking-wider hover:bg-rose-50 transition-colors'
-                            >
-                                Cancel
-                            </button>
+                        {isAdmin(user.role) ? (
+                            <div className='flex items-center gap-2'>
+                                <select 
+                                    className='px-3 py-1.5 rounded-xl border border-neutral-200 text-xs font-bold outline-none bg-white focus:ring-2 focus:ring-primary-light transition-all'
+                                    value={order.orderStatus}
+                                    onChange={(e) => updateOrderStatus(e.target.value)}
+                                    disabled={updatingStatus}
+                                >
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        ) : (
+                            <>
+                                {order.orderStatus === 'pending' && (
+                                    <button
+                                        onClick={() => setCancelOrderModal({ ...cancelOrderModal, isOpen: true })}
+                                        className='px-4 py-1.5 rounded-xl border border-rose-200 text-rose-600 font-bold text-[11px] uppercase tracking-wider hover:bg-rose-50 transition-colors'
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </>
                         )}
                         <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest ${order.orderStatus === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
                             order.orderStatus === 'cancelled' ? 'bg-rose-100 text-rose-700' : 'bg-primary-light text-primary-200'
@@ -315,9 +363,28 @@ const OrderDetails = () => {
                                 </div>
                                 <div className='flex flex-col'>
                                     <span className='text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1'>Tracking Number</span>
-                                    <p className='text-base font-mono font-bold tracking-wider'>
-                                        {order.trackingNumber || 'PENDING_ASSIGNMENT'}
-                                    </p>
+                                    {isAdmin(user.role) ? (
+                                        <div className='flex gap-2'>
+                                            <input 
+                                                type="text"
+                                                className='flex-grow bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm font-mono outline-none focus:bg-white/20 transition-all text-white placeholder:text-white/40'
+                                                placeholder="Enter tracking ID..."
+                                                value={trackingInput}
+                                                onChange={(e) => setTrackingInput(e.target.value)}
+                                            />
+                                            <button 
+                                                onClick={() => updateOrderStatus(order.orderStatus)}
+                                                className='px-4 bg-white text-primary-200 rounded-lg text-xs font-bold hover:bg-neutral-100 transition-colors'
+                                                disabled={updatingStatus}
+                                            >
+                                                Save
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <p className='text-base font-mono font-bold tracking-wider'>
+                                            {order.trackingNumber || 'PENDING_ASSIGNMENT'}
+                                        </p>
+                                    )}
                                 </div>
                                 {order.trackingNumber && (
                                     <a
