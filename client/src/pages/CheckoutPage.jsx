@@ -58,8 +58,8 @@ const StripePaymentForm = ({ onPaymentSuccess, onPaymentError, placingOrder, set
           <MdLock className="text-indigo-500 text-lg" />
           <h3 className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Secure Card Payment</h3>
           <div className="ml-auto flex items-center gap-1.5">
-            <img src="https://cdn.jsdelivr.net/gh/nicepay-dev/visa-logo@main/visa.svg" alt="Visa" className="h-5 opacity-60" onError={(e) => e.target.style.display = 'none'} />
-            <img src="https://cdn.jsdelivr.net/gh/nicepay-dev/mastercard-logo@main/mastercard.svg" alt="Mastercard" className="h-5 opacity-60" onError={(e) => e.target.style.display = 'none'} />
+            <img src="https://cdn.jsdelivr.net/gh/nicepay-dev/visa-logo@main/visa.svg" alt="Visa" loading="lazy" className="h-5 opacity-60" onError={(e) => e.target.style.display = 'none'} />
+            <img src="https://cdn.jsdelivr.net/gh/nicepay-dev/mastercard-logo@main/mastercard.svg" alt="Mastercard" loading="lazy" className="h-5 opacity-60" onError={(e) => e.target.style.display = 'none'} />
           </div>
         </div>
         <div className="p-4">
@@ -591,7 +591,7 @@ const CheckoutPage = () => {
                     return (
                       <div key={item._id} className="flex gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-100">
                         <div className="w-12 h-12 bg-white rounded-lg flex-shrink-0 border border-slate-50 flex items-center justify-center p-1">
-                          <img src={Array.isArray(product?.image) ? product.image[0] : product?.image} alt={product?.name} className="w-full h-full object-scale-down" />
+                          <img src={Array.isArray(product?.image) ? product.image[0] : product?.image} alt={product?.name} loading="lazy" className="w-full h-full object-scale-down" />
                         </div>
                         <div className="flex-1 min-w-0 py-0.5">
                           <p className="text-[10px] font-black text-slate-800 line-clamp-1 mb-0.5 uppercase tracking-tighter">{product?.name}</p>

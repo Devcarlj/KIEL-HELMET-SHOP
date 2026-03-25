@@ -25,7 +25,7 @@ const DeleteProductConfirm = ({ close, product, onConfirm, loading }) => {
                     {product.image?.[0] && (
                         <div className='flex justify-center'>
                             <div className='w-20 h-20 rounded-xl border border-slate-200 overflow-hidden bg-slate-50'>
-                                <img src={product.image[0]} alt={product.name} className='w-full h-full object-scale-down' />
+                                <img src={product.image[0]} alt={product.name} loading='lazy' className='w-full h-full object-scale-down' />
                             </div>
                         </div>
                     )}

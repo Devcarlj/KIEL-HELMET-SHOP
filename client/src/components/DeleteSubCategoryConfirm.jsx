@@ -25,7 +25,7 @@ const DeleteSubCategoryConfirm = ({ close, subCategory, onConfirm, loading }) =>
                     {subCategory.image && (
                         <div className='flex justify-center'>
                             <div className='w-20 h-20 rounded-xl border border-slate-200 overflow-hidden bg-slate-50'>
-                                <img src={subCategory.image} alt={subCategory.name} className='w-full h-full object-scale-down' />
+                                <img src={subCategory.image} alt={subCategory.name} loading='lazy' className='w-full h-full object-scale-down' />
                             </div>
                         </div>
                     )}

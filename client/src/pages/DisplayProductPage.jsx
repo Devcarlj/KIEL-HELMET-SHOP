@@ -185,7 +185,7 @@ const DisplayProductPage = () => {
                     className={`relative w-10 h-10 md:w-20 md:h-20 rounded-lg md:rounded-2xl border-2 overflow-hidden shrink-0 transition-all ${index === activeImageIndex ? 'border-primary ring-2 ring-primary/20' : 'border-white bg-white hover:border-slate-200'
                       }`}
                   >
-                    <img src={getOptimizedImageUrl(img, { width: 200 })} alt='thumb' className='w-full h-full object-scale-down p-1' />
+                    <img src={getOptimizedImageUrl(img, { width: 200 })} alt='thumb' loading='lazy' className='w-full h-full object-scale-down p-1' />
                   </button>
                 ))}
               </div>
@@ -327,7 +327,7 @@ const DisplayProductPage = () => {
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8'>
             <div className='flex flex-col md:items-center md:text-center gap-4 p-5 md:p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group'>
               <div className='w-14 h-14 md:w-24 md:h-24 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
-                <img src={deliveryIcon} alt='Delivery' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
+                <img src={deliveryIcon} alt='Delivery' loading='lazy' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
               </div>
               <div className='min-w-0'>
                 <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Secured delivery</p>
@@ -336,7 +336,7 @@ const DisplayProductPage = () => {
             </div>
             <div className='flex flex-col md:items-center md:text-center gap-4 p-5 md:p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group'>
               <div className='w-14 h-14 md:w-24 md:h-24 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
-                <img src={moneyIcon} alt='Prices' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
+                <img src={moneyIcon} alt='Prices' loading='lazy' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
               </div>
               <div className='min-w-0'>
                 <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Best prices & offers</p>
@@ -345,7 +345,7 @@ const DisplayProductPage = () => {
             </div>
             <div className='flex flex-col md:items-center md:text-center gap-4 p-5 md:p-8 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 group'>
               <div className='w-14 h-14 md:w-24 md:h-24 rounded-full bg-white flex items-center justify-center shrink-0 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform'>
-                <img src={assortmentIcon} alt='Assortment' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
+                <img src={assortmentIcon} alt='Assortment' loading='lazy' className='w-9 h-9 md:w-14 md:h-14 object-contain' />
               </div>
               <div className='min-w-0'>
                 <p className='text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight mb-1 md:mb-2'>Wide assortment</p>

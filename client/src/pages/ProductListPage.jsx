@@ -1,60 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import CardProduct from '../components/CardProduct'
+import useSWR from 'swr'
 
 const ProductListPage = () => {
   const { categoryId } = useParams()
-
-  const [category, setCategory] = useState(null)
-  const [subCategories, setSubCategories] = useState([])
-  const [products, setProducts] = useState([])
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('all')
-  const [loading, setLoading] = useState(true)
+
+  const { data: categoryListData } = useSWR(SummaryApi.getCategory)
+  const { data: subCategoryListData } = useSWR(SummaryApi.getSubCategory)
+  const { data: productsListData, isLoading: loading } = useSWR(
+    categoryId ? { ...SummaryApi.getProductsByCategory, data: { id: categoryId } } : null
+  )
+
+  const category = useMemo(() => {
+    if (!categoryListData?.success) return null
+    return categoryListData.data.find(cat => cat._id === categoryId)
+  }, [categoryListData, categoryId])
+
+  const subCategories = useMemo(() => {
+    if (!subCategoryListData?.success) return []
+    const allSub = subCategoryListData.data || []
+    return allSub.filter(subCat =>
+      Array.isArray(subCat.category) &&
+      subCat.category.some(c => (c._id || c) === categoryId)
+    )
+  }, [subCategoryListData, categoryId])
+
+  const products = productsListData?.success ? productsListData.data : []
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-
-        const [categoryRes, subCategoryRes, productsRes] = await Promise.all([
-          Axios({ ...SummaryApi.getCategory }),
-          Axios({ ...SummaryApi.getSubCategory }),
-          Axios({
-            ...SummaryApi.getProductsByCategory,
-            data: { id: categoryId }
-          })
-        ])
-
-        if (categoryRes.data.success) {
-          const found = categoryRes.data.data.find(cat => cat._id === categoryId)
-          setCategory(found || null)
-        }
-
-        if (subCategoryRes.data.success) {
-          const allSub = subCategoryRes.data.data || []
-          const filtered = allSub.filter(subCat =>
-            Array.isArray(subCat.category) &&
-            subCat.category.some(c => (c._id || c) === categoryId)
-          )
-          setSubCategories(filtered)
-        }
-
-        if (productsRes.data.success) {
-          setProducts(productsRes.data.data || [])
-        }
-      } catch (error) {
-        console.log('Error loading category products page:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (categoryId) {
-      fetchData()
-      setSelectedSubCategoryId('all')
-    }
+    setSelectedSubCategoryId('all')
   }, [categoryId])
 
   const visibleProducts = useMemo(() => {

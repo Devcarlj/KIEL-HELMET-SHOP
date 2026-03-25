@@ -205,7 +205,7 @@ const SubCategoryPage = () => {
                         </td>
                         <td className='px-6 py-4'>
                           <div className='w-14 h-14 rounded-2xl overflow-hidden bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500 p-1'>
-                            <img src={subCategory.image} alt={subCategory.name} className='w-full h-full object-scale-down' />
+                            <img src={subCategory.image} alt={subCategory.name} loading='lazy' className='w-full h-full object-scale-down' />
                           </div>
                         </td>
                         <td className='px-6 py-4 font-medium'>
@@ -261,7 +261,7 @@ const SubCategoryPage = () => {
                     </div>
                   </div>
                   <div className='flex gap-5'>
-                    <div className='w-24 h-24 flex-shrink-0 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 p-2 shadow-inner'><img src={subCategory.image} alt={subCategory.name} className='w-full h-full object-scale-down' /></div>
+                    <div className='w-24 h-24 flex-shrink-0 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 p-2 shadow-inner'><img src={subCategory.image} alt={subCategory.name} loading='lazy' className='w-full h-full object-scale-down' /></div>
                     <div className='flex flex-col justify-center space-y-3'>
                       <div>
                         <h3 className='font-black text-slate-800 capitalize text-lg leading-tight tracking-tight'>{subCategory.name}</h3>

@@ -122,9 +122,9 @@ const Profile = () => {
         <div className='relative'>
           <div className='w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-md flex items-center justify-center'>
             {user.avatar ? (
-              <img src={user.avatar} alt="Profile" className='w-full h-full object-cover' />
+              <img src={user.avatar} alt="Profile" loading="lazy" className='w-full h-full object-cover' />
             ) : (
-              <img src={defaultUserAvatar} alt="Default Profile" className='w-full h-full object-cover' />
+              <img src={defaultUserAvatar} alt="Default Profile" loading="lazy" className='w-full h-full object-cover' />
             )}
           </div>
           <label htmlFor='profileImage' className='absolute bottom-0 right-0 p-2 bg-cta-green text-white rounded-full shadow-lg cursor-pointer'>

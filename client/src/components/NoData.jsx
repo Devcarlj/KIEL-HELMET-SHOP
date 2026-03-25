@@ -8,6 +8,7 @@ const NoData = () => {
       <img 
         src={NoDataImage}
         alt="no data"
+        loading="lazy"
         className='w-40 h-full object-scale-down' 
       />
       <p className='text-neutral-500 mt-2 font-medium'>No data available</p>

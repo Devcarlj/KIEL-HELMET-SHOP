@@ -206,9 +206,9 @@ const AdminOrders = () => {
                                             <div className='flex items-center gap-3'>
                                                 <div className='w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 overflow-hidden'>
                                                     {order.userId?.avatar ? (
-                                                        <img src={order.userId.avatar} alt="User" className='w-full h-full object-cover' />
+                                                        <img src={order.userId.avatar} alt="User" loading="lazy" className='w-full h-full object-cover' />
                                                     ) : (
-                                                        <img src={defaultUserAvatar} alt="Default User" className='w-full h-full object-cover' />
+                                                        <img src={defaultUserAvatar} alt="Default User" loading="lazy" className='w-full h-full object-cover' />
                                                     )}
                                                 </div>
                                                 <div className='flex flex-col'>
@@ -312,9 +312,9 @@ const AdminOrders = () => {
                                     <div className='flex items-center gap-3'>
                                         <div className='w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 flex-shrink-0 overflow-hidden'>
                                             {order.userId?.avatar ? (
-                                                <img src={order.userId.avatar} alt="User" className='w-full h-full object-cover' />
+                                                <img src={order.userId.avatar} alt="User" loading="lazy" className='w-full h-full object-cover' />
                                             ) : (
-                                                <img src={defaultUserAvatar} alt="Default User" className='w-full h-full object-cover' />
+                                                <img src={defaultUserAvatar} alt="Default User" loading="lazy" className='w-full h-full object-cover' />
                                             )}
                                         </div>
                                         <div className='flex flex-col min-w-0'>

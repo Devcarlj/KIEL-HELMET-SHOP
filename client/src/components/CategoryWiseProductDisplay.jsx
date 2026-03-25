@@ -1,34 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react'
-import Axios from '../utils/Axios'
-import SummaryApi from '../common/SummaryApi'
+import React, { useRef } from 'react'
+import useSWR from 'swr'
 import CardProduct from './CardProduct'
 import { Link } from 'react-router-dom'
+import SummaryApi from '../common/SummaryApi'
 
 const CategoryWiseProductDisplay = ({ id, name }) => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
     const containerRef = useRef()
 
-    const fetchCategoryWiseProduct = async () => {
-        try {
-            setLoading(true)
-            const response = await Axios({
-                ...SummaryApi.getProductsByCategory,
-                data: { id, limit: 10 }
-            })
-            if (response.data.success) {
-                setData(response.data.data)
-            }
-        } catch (error) {
-            console.log("Error fetching products by category:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchCategoryWiseProduct()
-    }, [])
+    const { data: productsData, isLoading: loading } = useSWR(
+        id ? { ...SummaryApi.getProductsByCategory, data: { id, limit: 10 } } : null
+    )
+    const data = productsData?.success ? productsData.data : []
 
     const handleNext = () => {
         containerRef.current.scrollLeft += containerRef.current.clientWidth * 0.8

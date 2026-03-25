@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Axios from '../utils/Axios.js'
 import SummaryApi from '../common/SummaryApi.js'
 import EditProductAdmin from '../components/EditProductAdmin.jsx'
@@ -6,41 +6,20 @@ import DeleteProductConfirm from '../components/DeleteProductConfirm.jsx'
 import toast from 'react-hot-toast'
 import NoData from '../components/NoData.jsx'
 import { DisplayPrice } from '../utils/DisplayPrice.js'
+import useSWR from 'swr'
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [editProduct, setEditProduct] = useState(null)
   const [deleteProduct, setDeleteProduct] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
-  const [search, setSearch] = useState("")
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true)
-      const response = await Axios({
-        ...SummaryApi.getProduct,
-        params: {
-          search: search
-        }
-      })
-      if (response.data.success) {
-        setProducts(response.data.data)
-      }
-    } catch (error) {
-      console.log("Error fetching products", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: productsData, isLoading: loading, mutate } = useSWR(
+    { ...SummaryApi.getProduct, params: { search } }
+  )
+  const products = productsData?.success ? productsData.data : []
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      fetchProducts()
-    }, 500)
-
-    return () => clearTimeout(timeout)
-  }, [search])
+  const fetchProducts = () => mutate() // For compatibility with child components
 
   const handleDeleteProduct = async (product) => {
     try {

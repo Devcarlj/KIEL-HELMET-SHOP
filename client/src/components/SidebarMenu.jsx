@@ -62,7 +62,7 @@ const SidebarMenu = ({ isOpen, onClose }) => {
                     ) : (
                         <div className='flex flex-col items-center justify-center py-10 px-4 text-center'>
                             <div className='w-16 h-16 bg-brand-cream-dark rounded-full flex items-center justify-center mb-4'>
-                                <img src={defaultUserAvatar} alt="Default User" className='w-full h-full object-cover rounded-full' />
+                                <img src={defaultUserAvatar} alt="Default User" loading="lazy" className='w-full h-full object-cover rounded-full' />
                             </div>
                             <h3 className='font-bold text-brand-primary mb-2'>Welcome to Kiel Helmet Shop</h3>
                             <p className='text-xs text-brand-text/70 mb-6'>Login to manage your orders, profile and more.</p>

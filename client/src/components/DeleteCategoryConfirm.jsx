@@ -25,7 +25,7 @@ const DeleteCategoryConfirm = ({ close, category, onConfirm, loading }) => {
                     {category.image && (
                         <div className='flex justify-center'>
                             <div className='w-20 h-20 rounded-xl border border-slate-200 overflow-hidden bg-slate-50'>
-                                <img src={category.image} alt={category.name} className='w-full h-full object-scale-down' />
+                                <img src={category.image} alt={category.name} loading='lazy' className='w-full h-full object-scale-down' />
                             </div>
                         </div>
                     )}

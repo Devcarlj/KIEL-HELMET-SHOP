@@ -1,32 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
-import Axios from '../utils/Axios'
+import useSWR from 'swr'
 import SummaryApi from '../common/SummaryApi'
 import { getOptimizedImageUrl } from '../utils/OptimizeImage'
 
 const CategoryListing = () => {
-    const [categories, setCategories] = useState([])
-    const [loading, setLoading] = useState(true)
-
-    const fetchCategories = async () => {
-        try {
-            setLoading(true)
-            const response = await Axios({
-                ...SummaryApi.getCategory
-            })
-            if (response.data.success) {
-                setCategories(response.data.data)
-            }
-        } catch (error) {
-            console.error("Error fetching categories:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchCategories()
-    }, [])
+    const { data: categoriesData, isLoading: loading } = useSWR(SummaryApi.getCategory)
+    const categories = categoriesData?.success ? categoriesData.data : []
 
     return (
         <section className="container mx-auto px-4 mt-6">
@@ -54,6 +34,7 @@ const CategoryListing = () => {
                                 <img
                                     src={getOptimizedImageUrl(category.image, { width: 150 })}
                                     alt={category.name}
+                                    loading="lazy"
                                     className="w-full h-full object-scale-down group-hover:scale-110 transition-transform duration-500"
                                 />
                             </div>

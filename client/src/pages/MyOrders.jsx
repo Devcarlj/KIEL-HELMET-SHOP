@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
@@ -8,33 +8,17 @@ import NoData from '../components/NoData'
 import Loading from '../components/Loading'
 import toast from 'react-hot-toast'
 import CancelOrderConfirm from '../components/CancelOrderConfirm'
+import useSWR from 'swr'
 
 const MyOrders = () => {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(false)
+  const { data: ordersData, isLoading: loading, mutate } = useSWR(SummaryApi.getOrderHistory)
+  const orders = ordersData?.success ? ordersData.data : []
+  
   const [cancelOrderModal, setCancelOrderModal] = useState({
     isOpen: false,
     orderId: null,
     loading: false
   })
-
-  const fetchOrders = async () => {
-    try {
-      setLoading(true)
-      const response = await Axios({
-        ...SummaryApi.getOrderHistory
-      })
-
-      const { data } = response
-      if (data.success) {
-        setOrders(data.data)
-      }
-    } catch (error) {
-      AxiosToastError(error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const formatDate = (dateString) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -70,7 +54,7 @@ const MyOrders = () => {
 
       if (response.data.success) {
         toast.success(response.data.message);
-        fetchOrders(); // Refresh orders
+        mutate(); // 👈 Use SWR mutate to refresh the list
         closeCancelModal();
       }
     } catch (error) {
@@ -79,10 +63,6 @@ const MyOrders = () => {
       setCancelOrderModal(prev => ({ ...prev, loading: false }))
     }
   }
-
-  useEffect(() => {
-    fetchOrders()
-  }, [])
 
   if (loading) {
     return (

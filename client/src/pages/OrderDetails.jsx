@@ -241,7 +241,7 @@ const OrderDetails = () => {
                             {order.products.map((product, idx) => (
                                 <div key={idx} className='p-6 flex gap-4'>
                                     <div className='w-20 h-20 rounded-xl bg-neutral-100 flex-shrink-0 overflow-hidden border border-neutral-50'>
-                                        <img src={product.image[0]} alt={product.name} className='w-full h-full object-scale-down' />
+                                        <img src={product.image[0]} alt={product.name} loading='lazy' className='w-full h-full object-scale-down' />
                                     </div>
                                     <div className='flex-grow'>
                                         <h4 className='font-bold text-neutral-800 text-base mb-1'>{product.name}</h4>

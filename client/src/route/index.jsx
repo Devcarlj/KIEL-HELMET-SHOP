@@ -1,34 +1,49 @@
 
+import React, { lazy, Suspense } from 'react'
 import App from '../App.jsx'
 import '../index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import PageLoadingFallback from '../components/PageLoadingFallback.jsx'
+
+// ─── Eager-loaded: Home is the landing page (above the fold) ───
 import Home from '../pages/Home.jsx';
-import SearchPage from '../pages/SearchPage.jsx';
-import Login from '../pages/Login.jsx';
-import Register from '../pages/Register.jsx';
-import ForgotPassword from '../pages/ForgotPassword.jsx';
-import VerifyOtp from '../pages/VerifyOtp.jsx';
-import ResetPassword from '../pages/ResetPassword.jsx';
-import CheckEmail from '../pages/CheckEmail.jsx';
-import VerifyEmail from '../pages/VerifyEmail.jsx';
-import UserMenuMobile from '../pages/UserMenuMobile.jsx';
-import Dashboard from '../layouts/Dashboard.jsx';
-import Profile from '../pages/Profile.jsx';
-import Adress from '../pages/Adress.jsx';
-import MyOrders from '../pages/MyOrders.jsx';
-import CategoryPage from '../pages/CategoryPage.jsx';
-import SubCategoryPage from '../pages/SubCategoryPage.jsx';
-import UploadProductPage from '../pages/UploadProductPage.jsx';
-import AdminProducts from '../pages/AdminProducts.jsx';
-import AdminPermission from '../layouts/adminPermission.jsx';
-import ProductListPage from '../pages/ProductListPage.jsx';
-import DisplayProductPage from '../pages/DisplayProductPage.jsx';
-import CheckoutPage from '../pages/CheckoutPage.jsx';
-import OrderSuccessPage from '../pages/OrderSuccessPage.jsx';
-import AdminOrders from '../pages/AdminOrders.jsx';
-import OrderDetails from '../pages/OrderDetails.jsx';
-import PrivacyPolicy from '../pages/PrivacyPolicy.jsx';
-import TermsOfService from '../pages/TermsOfService.jsx';
+
+// ─── Lazy-loaded page components (code splitting) ───
+const SearchPage = lazy(() => import('../pages/SearchPage.jsx'));
+const Login = lazy(() => import('../pages/Login.jsx'));
+const Register = lazy(() => import('../pages/Register.jsx'));
+const ForgotPassword = lazy(() => import('../pages/ForgotPassword.jsx'));
+const VerifyOtp = lazy(() => import('../pages/VerifyOtp.jsx'));
+const ResetPassword = lazy(() => import('../pages/ResetPassword.jsx'));
+const CheckEmail = lazy(() => import('../pages/CheckEmail.jsx'));
+const VerifyEmail = lazy(() => import('../pages/VerifyEmail.jsx'));
+const UserMenuMobile = lazy(() => import('../pages/UserMenuMobile.jsx'));
+const Profile = lazy(() => import('../pages/Profile.jsx'));
+const Adress = lazy(() => import('../pages/Adress.jsx'));
+const MyOrders = lazy(() => import('../pages/MyOrders.jsx'));
+const CategoryPage = lazy(() => import('../pages/CategoryPage.jsx'));
+const SubCategoryPage = lazy(() => import('../pages/SubCategoryPage.jsx'));
+const UploadProductPage = lazy(() => import('../pages/UploadProductPage.jsx'));
+const AdminProducts = lazy(() => import('../pages/AdminProducts.jsx'));
+const ProductListPage = lazy(() => import('../pages/ProductListPage.jsx'));
+const DisplayProductPage = lazy(() => import('../pages/DisplayProductPage.jsx'));
+const CheckoutPage = lazy(() => import('../pages/CheckoutPage.jsx'));
+const OrderSuccessPage = lazy(() => import('../pages/OrderSuccessPage.jsx'));
+const AdminOrders = lazy(() => import('../pages/AdminOrders.jsx'));
+const OrderDetails = lazy(() => import('../pages/OrderDetails.jsx'));
+const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy.jsx'));
+const TermsOfService = lazy(() => import('../pages/TermsOfService.jsx'));
+
+// ─── Lazy-loaded layout components ───
+const Dashboard = lazy(() => import('../layouts/Dashboard.jsx'));
+const AdminPermission = lazy(() => import('../layouts/adminPermission.jsx'));
+
+// ─── Helper: wrap element in Suspense ───
+const SuspenseWrap = ({ children }) => (
+  <Suspense fallback={<PageLoadingFallback />}>
+    {children}
+  </Suspense>
+);
 
 const router = createBrowserRouter([
   {
@@ -41,103 +56,103 @@ const router = createBrowserRouter([
       },
       {
         path: "category/:categoryId",
-        element: <ProductListPage />
+        element: <SuspenseWrap><ProductListPage /></SuspenseWrap>
       },
       {
         path: "product/:productId",
-        element: <DisplayProductPage />
+        element: <SuspenseWrap><DisplayProductPage /></SuspenseWrap>
       },
       {
         path: "search",
-        element: <SearchPage />
+        element: <SuspenseWrap><SearchPage /></SuspenseWrap>
       },
       {
         path: "login",
-        element: <Login />
+        element: <SuspenseWrap><Login /></SuspenseWrap>
       },
       {
         path: "register",
-        element: <Register />
+        element: <SuspenseWrap><Register /></SuspenseWrap>
       },
       {
         path: "forgot-password",
-        element: <ForgotPassword />
+        element: <SuspenseWrap><ForgotPassword /></SuspenseWrap>
       },
       {
         path: "check-email",
-        element: <CheckEmail />
+        element: <SuspenseWrap><CheckEmail /></SuspenseWrap>
       },
       {
         path: "verify-email",
-        element: <VerifyEmail />
+        element: <SuspenseWrap><VerifyEmail /></SuspenseWrap>
       },
       {
         path: "verify-otp",
-        element: <VerifyOtp />
+        element: <SuspenseWrap><VerifyOtp /></SuspenseWrap>
       },
       {
         path: "reset-password",
-        element: <ResetPassword />
+        element: <SuspenseWrap><ResetPassword /></SuspenseWrap>
       },
       {
         path: "user-menu",
-        element: <UserMenuMobile />
+        element: <SuspenseWrap><UserMenuMobile /></SuspenseWrap>
       },
       {
         path: "checkout",
-        element: <CheckoutPage />
+        element: <SuspenseWrap><CheckoutPage /></SuspenseWrap>
       },
       {
         path: "order-success",
-        element: <OrderSuccessPage />
+        element: <SuspenseWrap><OrderSuccessPage /></SuspenseWrap>
       },
       {
         path: "privacy-policy",
-        element: <PrivacyPolicy />
+        element: <SuspenseWrap><PrivacyPolicy /></SuspenseWrap>
       },
       {
         path: "terms-of-service",
-        element: <TermsOfService />
+        element: <SuspenseWrap><TermsOfService /></SuspenseWrap>
       },
       {
         path: "dashboard",
-        element: <Dashboard />,
+        element: <SuspenseWrap><Dashboard /></SuspenseWrap>,
         children: [
           {
             path: "profile",
-            element: <Profile />
+            element: <SuspenseWrap><Profile /></SuspenseWrap>
           },
           {
             path: "my-orders",
-            element: <MyOrders />
+            element: <SuspenseWrap><MyOrders /></SuspenseWrap>
           },
           {
             path: "address",
-            element: <Adress />
+            element: <SuspenseWrap><Adress /></SuspenseWrap>
           },
           {
             path: "category",
-            element: <AdminPermission><CategoryPage /></AdminPermission>
+            element: <SuspenseWrap><AdminPermission><CategoryPage /></AdminPermission></SuspenseWrap>
           },
           {
             path: "sub-category",
-            element: <AdminPermission><SubCategoryPage /></AdminPermission>
+            element: <SuspenseWrap><AdminPermission><SubCategoryPage /></AdminPermission></SuspenseWrap>
           },
           {
             path: "upload-product",
-            element: <AdminPermission><UploadProductPage /></AdminPermission>
+            element: <SuspenseWrap><AdminPermission><UploadProductPage /></AdminPermission></SuspenseWrap>
           },
           {
             path: "products",
-            element: <AdminPermission><AdminProducts /></AdminPermission>
+            element: <SuspenseWrap><AdminPermission><AdminProducts /></AdminPermission></SuspenseWrap>
           },
           {
             path: "all-orders",
-            element: <AdminPermission><AdminOrders /></AdminPermission>
+            element: <SuspenseWrap><AdminPermission><AdminOrders /></AdminPermission></SuspenseWrap>
           },
           {
             path: "order-details/:orderId",
-            element: <OrderDetails />
+            element: <SuspenseWrap><OrderDetails /></SuspenseWrap>
           }
         ]
       }

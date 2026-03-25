@@ -81,9 +81,9 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
         }}
           className='w-10 h-10 shrink-0 rounded-full overflow-hidden bg-brand-cream-dark flex items-center justify-center border border-brand-cream-dark cursor-pointer'>
           {user?.avatar ? (
-            <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
+            <img src={user.avatar} alt="User" loading="lazy" className="w-full h-full object-cover" />
           ) : (
-            <img src={defaultUserAvatar} alt="Default User" className="w-full h-full object-cover" />
+            <img src={defaultUserAvatar} alt="Default User" loading="lazy" className="w-full h-full object-cover" />
           )}
         </div>
 

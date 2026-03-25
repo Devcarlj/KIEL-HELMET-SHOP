@@ -13,41 +13,50 @@ import { useDispatch } from 'react-redux';
 
 import ScrollToTop from './components/ScrollToTop.jsx'
 
+import useSWR from 'swr'
+import SummaryApi from './common/SummaryApi.js'
+
 function App() {
     const dispatch = useDispatch()
-    
+    const token = localStorage.getItem('accessToken');
+
+    // SWR hook for user details
+    const { data: userData, isLoading: userLoading } = useSWR(
+        token ? SummaryApi.userDetails : null,
+        {
+            revalidateOnFocus: false,
+            shouldRetryOnError: false
+        }
+    );
+
+    // SWR hook for cart items
+    const { data: cartData } = useSWR(
+        token ? SummaryApi.getCartItems : null,
+        {
+            revalidateOnFocus: false,
+            shouldRetryOnError: false
+        }
+    );
+
+    // Update Redux state when SWR data changes
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        
         if (!token) {
-            dispatch(setLoading(false)) // 👈 no token = no user, stop loading
+            dispatch(setLoading(false));
             return;
         }
 
-        const fetchUser = async () => {
-            dispatch(setLoading(true)) // 👈 start loading
-            try {
-                const userData = await fetchUserDetails();
-                if (userData?.success) {
-                    dispatch(setUserDetails(userData.data));
-                }
-            } catch (error) {
-                console.error(error)
-            } finally {
-                dispatch(setLoading(false)) // 👈 always stop loading when done
-            }
-        };
+        if (userData?.success) {
+            dispatch(setUserDetails(userData.data));
+        }
+        
+        dispatch(setLoading(userLoading));
+    }, [userData, userLoading, token, dispatch]);
 
-        const fetchCart = async () => {
-            const cartData = await fetchCartItems();
-            if (cartData?.success) {
-                dispatch(setCart(cartData.data));
-            }
-        };
-
-        fetchUser();
-        fetchCart();
-    }, [dispatch]);
+    useEffect(() => {
+        if (cartData?.success) {
+            dispatch(setCart(cartData.data));
+        }
+    }, [cartData, dispatch]);
 
 
     return (

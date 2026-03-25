@@ -12,7 +12,7 @@ const Footer = () => {
                     {/* Brand Section */}
                     <div className='flex flex-col gap-4'>
                         <Link to="/" className='inline-block'>
-                            <img src={logo} alt="Kiel Helmet Shop" className='h-16 w-auto brightness-110' />
+                            <img src={logo} alt="Kiel Helmet Shop" loading="lazy" className='h-16 w-auto brightness-110' />
                         </Link>
                         <p className='text-sm leading-relaxed opacity-80'>
                             Your ultimate destination for premium quality helmets and riding gear. Gear up for your next adventure with safety and style.
