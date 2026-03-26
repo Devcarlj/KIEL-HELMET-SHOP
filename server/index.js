@@ -49,7 +49,7 @@ mainRouter.use('/order', orderRouter);
 app.use('/api', mainRouter);
 
 // Home route for the API specifically
-app.get("/api-status", (req, res) => {
+app.get("/api/api-status", (req, res) => {
     res.json({ message: "Backend API is running" });
 });
 
