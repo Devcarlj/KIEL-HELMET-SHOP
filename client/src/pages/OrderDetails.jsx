@@ -10,6 +10,8 @@ import toast from 'react-hot-toast'
 import CancelOrderConfirm from '../components/CancelOrderConfirm'
 import { useSelector } from 'react-redux'
 import isAdmin from '../utils/isAdmin'
+import ReviewModal from '../components/ReviewModal'
+import useSWR from 'swr'
 
 const OrderDetails = () => {
     const { orderId } = useParams()
@@ -22,6 +24,12 @@ const OrderDetails = () => {
     const user = useSelector(state => state.user)
     const [updatingStatus, setUpdatingStatus] = useState(false)
     const [trackingInput, setTrackingInput] = useState("")
+    const [reviewModalOpen, setReviewModalOpen] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState(null)
+    const [existingReview, setExistingReview] = useState(null)
+
+    const { data: reviewsData, mutate: mutateReviews } = useSWR(user?._id ? SummaryApi.getUserReviews : null)
+    const userReviews = reviewsData?.success ? reviewsData.data : []
 
     const handleCancelOrder = async () => {
         try {
@@ -41,6 +49,12 @@ const OrderDetails = () => {
         } finally {
             setCancelOrderModal(prev => ({ ...prev, loading: false }))
         }
+    }
+
+    const openReviewModal = (product, review = null) => {
+        setExistingReview(review)
+        setSelectedProduct(product)
+        setReviewModalOpen(true)
     }
 
     const fetchOrderDetails = async () => {
@@ -256,7 +270,32 @@ const OrderDetails = () => {
                                         )}
                                         <div className='flex justify-between items-center'>
                                             <p className='text-sm text-neutral-500'>Qty: <span className='font-bold text-neutral-700'>{product.quantity}</span></p>
-                                            <p className='font-bold text-neutral-800'>{DisplayPrice(product.price * product.quantity)}</p>
+                                            <div className='flex flex-col items-end gap-2'>
+                                                <p className='font-bold text-neutral-800'>{DisplayPrice(product.price * product.quantity)}</p>
+                                                {order.orderStatus === 'delivered' && !isAdmin(user.role) && (
+                                                    (() => {
+                                                        const rvw = userReviews.find(r => r.productId === product.productId && r.orderId === order._id);
+                                                        if (rvw) {
+                                                            return (
+                                                                <button 
+                                                                    onClick={() => openReviewModal(product, rvw)} 
+                                                                    className='px-3 py-1 rounded border border-neutral-300 bg-neutral-100 text-neutral-600 text-[10px] font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors'
+                                                                >
+                                                                    Edit Review
+                                                                </button>
+                                                            )
+                                                        }
+                                                        return (
+                                                            <button 
+                                                                onClick={() => openReviewModal(product)} 
+                                                                className='px-3 py-1 rounded border border-amber-400 text-amber-600 text-[10px] font-bold uppercase tracking-wider hover:bg-amber-50 transition-colors'
+                                                            >
+                                                                Rate Product
+                                                            </button>
+                                                        )
+                                                    })()
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -352,6 +391,17 @@ const OrderDetails = () => {
                         </div>
                     </div>
 
+                    {/* Order Comment / Note */}
+                    {order.comment && (
+                        <div className='bg-white rounded-2xl border border-amber-100 shadow-sm p-6 bg-amber-50/10'>
+                            <h3 className='font-bold text-amber-800 mb-2 flex items-center gap-2'>
+                                <HiOutlineCog className="w-5 h-5" /> 
+                                Order Note
+                            </h3>
+                            <p className='text-sm text-neutral-700 italic'>{order.comment}</p>
+                        </div>
+                    )}
+
                     {/* Tracking Info */}
                     {order.orderStatus !== 'pending' && order.orderStatus !== 'cancelled' && (
                         <div className='bg-gradient-to-br from-primary-200 to-indigo-700 rounded-2xl shadow-lg p-6 text-white'>
@@ -409,6 +459,19 @@ const OrderDetails = () => {
                     onConfirm={handleCancelOrder}
                     loading={cancelOrderModal.loading}
                     orderId={order.orderId}
+                />
+            )}
+
+            {reviewModalOpen && (
+                <ReviewModal 
+                    close={() => {
+                        setReviewModalOpen(false)
+                        setExistingReview(null)
+                    }}
+                    product={selectedProduct}
+                    orderId={order._id}
+                    existingReview={existingReview}
+                    onSuccess={mutateReviews}
                 />
             )}
         </div>

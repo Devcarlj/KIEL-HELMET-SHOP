@@ -4,6 +4,12 @@ import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import { DisplayPrice } from '../utils/DisplayPrice'
 import AddToCartButton from '../components/AddToCartButton'
+import { FaStar, FaEdit, FaTrash } from 'react-icons/fa'
+import { useSelector } from 'react-redux'
+import isAdmin from '../utils/isAdmin'
+import toast from 'react-hot-toast'
+import AxiosToastError from '../utils/AxiosToastError'
+import ReviewModal from '../components/ReviewModal'
 
 import deliveryIcon from '../assets/delivery.png'
 import moneyIcon from '../assets/money.png'
@@ -19,6 +25,10 @@ const DisplayProductPage = () => {
   const [loading, setLoading] = useState(!location.state?.product)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [selectedVariations, setSelectedVariations] = useState({})
+  const [reviews, setReviews] = useState([])
+  const user = useSelector(state => state.user)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [editingReview, setEditingReview] = useState(null)
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -48,6 +58,60 @@ const DisplayProductPage = () => {
     setActiveImageIndex(0)
     setSelectedVariations({})
   }, [productId])
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await Axios({
+            ...SummaryApi.getProductReviews,
+            url: `${SummaryApi.getProductReviews.url}/${productId}`
+        })
+        if (response.data.success) {
+            setReviews(response.data.data)
+        }
+      } catch (error) {
+          console.error("Error fetching reviews", error)
+      }
+    }
+    if (productId) {
+        fetchReviews()
+    }
+  }, [productId])
+
+  const fetchReviewsDirectly = async () => {
+      try {
+        const response = await Axios({
+            ...SummaryApi.getProductReviews,
+            url: `${SummaryApi.getProductReviews.url}/${productId}`
+        })
+        if (response.data.success) {
+            setReviews(response.data.data)
+        }
+      } catch (error) {
+          console.error("Error fetching reviews", error)
+      }
+  }
+
+  const handleDeleteReview = async (reviewId) => {
+      if (!window.confirm("Are you sure you want to delete this review?")) return;
+      try {
+          const response = await Axios({
+              ...SummaryApi.deleteReview,
+              url: `${SummaryApi.deleteReview.url}/${reviewId}`
+          })
+          if (response.data.success) {
+              toast.success(response.data.message)
+              fetchReviewsDirectly()
+          }
+      } catch (error) {
+          AxiosToastError(error)
+      }
+  }
+
+  const openEditModal = (review) => {
+      setEditingReview(review)
+      setReviewModalOpen(true)
+  }
 
   const images = useMemo(() => {
     if (!product) return []
@@ -293,7 +357,7 @@ const DisplayProductPage = () => {
             <h2 className='text-xs font-black text-slate-500 uppercase tracking-[0.25em] mb-0 mt-3'>
               More Details
             </h2>
-            <div className='rounded-2xl bg-slate-50/80 border border-slate-100 p-5 md:p-6'>
+            <div className='rounded-2xl bg-slate-50/80 border border-slate-100 p-5 md:p-6 mt-3'>
               {typeof product.more_details === 'string' ? (
                 <p className='text-slate-700 leading-relaxed whitespace-pre-line text-sm md:text-base'>
                   {product.more_details}
@@ -318,6 +382,70 @@ const DisplayProductPage = () => {
             </div>
           </div>
         )}
+
+        {/* Product Reviews Section */}
+        <div className='mt-8 pt-6 border-t border-slate-200'>
+            <h2 className='text-xs font-black text-slate-500 uppercase tracking-[0.25em] mb-4 flex items-center gap-2'>
+              Product Reviews <span className='bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px]'>{reviews.length}</span>
+            </h2>
+            
+            {reviews.length > 0 ? (
+                <div className='space-y-4'>
+                    {reviews.map((review, idx) => (
+                        <div key={idx} className='bg-slate-50/50 border border-slate-100 p-4 md:p-6 rounded-[1.5rem] hover:shadow-lg hover:bg-white transition-all'>
+                            <div className='flex items-center gap-3 mb-3'>
+                                <div className='w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm border border-slate-100'>
+                                    {review.userId?.avatar ? (
+                                        <img src={review.userId.avatar} alt={review.userId.name} className='w-full h-full object-cover' />
+                                    ) : (
+                                        <span className='text-xs font-bold text-slate-500'>{(review.userId?.name || 'U').charAt(0).toUpperCase()}</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className='text-sm font-bold text-slate-800 flex items-center gap-2'>
+                                        {review.userId?.name || 'Customer'}
+                                        {review.isEdited && (
+                                            <span className='text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full font-medium tracking-wider uppercase'>(Edited)</span>
+                                        )}
+                                    </p>
+                                    <div className='flex text-amber-400 text-xs mt-0.5'>
+                                        {[...Array(5)].map((_, i) => (
+                                            <FaStar key={i} color={i < review.rating ? "#fbbf24" : "#e5e7eb"} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className='ml-auto flex flex-col items-end gap-2'>
+                                    <span className='text-[10px] font-bold text-slate-400 uppercase tracking-widest'>
+                                        {new Date(review.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric'})}
+                                    </span>
+                                    {((user?._id && review.userId?._id === user._id) || isAdmin(user?.role)) && (
+                                        <div className='flex items-center gap-2'>
+                                            {review.userId?._id === user._id && (
+                                                <button onClick={() => openEditModal(review)} className='text-slate-400 hover:text-blue-500 transition-colors p-1'>
+                                                    <FaEdit size={12} />
+                                                </button>
+                                            )}
+                                            <button onClick={() => handleDeleteReview(review._id)} className='text-slate-400 hover:text-red-500 transition-colors p-1'>
+                                                <FaTrash size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {review.comment && (
+                                <p className='text-sm text-slate-600 pl-[3.25rem] leading-relaxed italic'>"{review.comment}"</p>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className='flex flex-col items-center justify-center py-12 bg-slate-50/50 border border-slate-100 rounded-[1.5rem]'>
+                    <FaStar className='text-slate-300 mb-3 drop-shadow-sm' size={40} />
+                    <p className='text-sm text-slate-500 font-bold'>No reviews yet</p>
+                    <p className='text-xs text-slate-400 mt-1'>Be the first to review this product after purchase.</p>
+                </div>
+            )}
+        </div>
 
         {/* Benefits Section - Visible on all devices (After More Details) */}
         <div className='mt-12 md:mt-16 pt-10 md:pt-14 border-t border-slate-200'>
@@ -356,6 +484,19 @@ const DisplayProductPage = () => {
         </div>
 
       </div>
+
+      {reviewModalOpen && (
+          <ReviewModal 
+              close={() => {
+                  setReviewModalOpen(false)
+                  setEditingReview(null)
+              }}
+              product={product}
+              orderId={editingReview?.orderId}
+              existingReview={editingReview}
+              onSuccess={fetchReviewsDirectly}
+          />
+      )}
     </section >
   )
 }

@@ -24,7 +24,8 @@ export const placeOrderController = async (request, response) => {
             deliveryAddress,
             subTotalAmount,
             shippingFee,
-            totalAmount
+            totalAmount,
+            comment
         } = request.body;
 
         // Validate required fields
@@ -86,6 +87,7 @@ export const placeOrderController = async (request, response) => {
             subTotalAmount,
             shippingFee,
             totalAmount,
+            comment: comment || "",
             orderStatus: 'pending',
             statusHistory: [{
                 status: 'pending',
@@ -370,6 +372,10 @@ export const updateOrderStatusController = async (request, response) => {
         order.isAdminSeen = true; // Mark as seen since admin modified it
         if (trackingNumber !== undefined) {
             order.trackingNumber = trackingNumber;
+        }
+
+        if (status === 'delivered' && order.paymentMethod === 'cod') {
+            order.paymentStatus = 'paid';
         }
 
         // Add to history

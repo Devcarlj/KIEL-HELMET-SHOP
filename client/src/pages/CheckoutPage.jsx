@@ -105,6 +105,7 @@ const CheckoutPage = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('online');
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [comment, setComment] = useState('');
 
   // Stripe state
   const [clientSecret, setClientSecret] = useState('');
@@ -273,7 +274,8 @@ const CheckoutPage = () => {
       },
       subTotalAmount: cartTotal,
       shippingFee,
-      totalAmount: finalTotal
+      totalAmount: finalTotal,
+      comment
     };
 
     try {
@@ -541,6 +543,24 @@ const CheckoutPage = () => {
                       <p className="text-[9px] text-slate-500 font-bold">Standard Delivery</p>
                     </div>
                   </label>
+                </div>
+              </section>
+
+              {/* 2.5 Order Comment / Note */}
+              <section className="bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0 overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-50">
+                  <h2 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-tight">
+                    <MdEdit className="text-blue-500 text-xl" />
+                    Order Note / Comment
+                  </h2>
+                </div>
+                <div className="p-4">
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Any special instructions or comments for your order?"
+                    className="w-full min-h-[80px] p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-bold text-slate-700 resize-y"
+                  ></textarea>
                 </div>
               </section>
 

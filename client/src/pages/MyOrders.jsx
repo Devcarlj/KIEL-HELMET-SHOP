@@ -9,16 +9,25 @@ import Loading from '../components/Loading'
 import toast from 'react-hot-toast'
 import CancelOrderConfirm from '../components/CancelOrderConfirm'
 import useSWR from 'swr'
+import ReviewModal from '../components/ReviewModal'
 
 const MyOrders = () => {
   const { data: ordersData, isLoading: loading, mutate } = useSWR(SummaryApi.getOrderHistory)
   const orders = ordersData?.success ? ordersData.data : []
+  
+  const { data: reviewsData, mutate: mutateReviews } = useSWR(SummaryApi.getUserReviews)
+  const userReviews = reviewsData?.success ? reviewsData.data : []
   
   const [cancelOrderModal, setCancelOrderModal] = useState({
     isOpen: false,
     orderId: null,
     loading: false
   })
+
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedOrderId, setSelectedOrderId] = useState(null)
+  const [existingReview, setExistingReview] = useState(null)
 
   const formatDate = (dateString) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -126,7 +135,7 @@ const MyOrders = () => {
               <div className='p-4 md:p-6'>
                 <div className='grid gap-6'>
                   {order.products.map((product, pIdx) => (
-                    <div key={product._id || pIdx} className='flex gap-4 items-center'>
+                    <div key={product._id || pIdx} className='flex gap-4 items-start md:items-center'>
                       <div className='w-20 h-20 bg-neutral-100 rounded-lg flex-shrink-0 overflow-hidden border border-neutral-50 shadow-inner'>
                         <img
                           src={product.image[0]}
@@ -135,7 +144,7 @@ const MyOrders = () => {
                         />
                       </div>
                       <div className='flex-grow min-w-0'>
-                        <h4 className='text-base font-semibold text-neutral-800 truncate mb-1'>{product.name}</h4>
+                        <h4 className='text-sm md:text-base font-bold md:font-semibold text-neutral-800 line-clamp-2 md:line-clamp-none md:truncate mb-1'>{product.name}</h4>
                         {product.variations?.length > 0 && (
                           <div className='flex flex-wrap items-center gap-1.5 mb-2'>
                             {product.variations.map((v, i) => (
@@ -149,6 +158,41 @@ const MyOrders = () => {
                           <p>Qty: <span className='text-neutral-700'>{product.quantity}</span></p>
                           <p>Price: <span className='text-neutral-700'>{DisplayPrice(product.price)}</span></p>
                         </div>
+                        {order.orderStatus === 'delivered' && (
+                          <div className='mt-3'>
+                            {(() => {
+                              const rvw = userReviews.find(r => r.productId === product.productId && r.orderId === order._id);
+                              if (rvw) {
+                                return (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedProduct(product)
+                                      setSelectedOrderId(order._id)
+                                      setExistingReview(rvw)
+                                      setReviewModalOpen(true)
+                                    }}
+                                    className='px-3 py-1.5 rounded-lg border border-neutral-300 bg-neutral-100 text-neutral-600 text-xs font-bold shadow-sm hover:bg-neutral-200 transition-colors inline-block'
+                                  >
+                                    Edit Review
+                                  </button>
+                                );
+                              }
+                              return (
+                                <button
+                                  onClick={() => {
+                                    setSelectedProduct(product)
+                                    setSelectedOrderId(order._id)
+                                    setExistingReview(null)
+                                    setReviewModalOpen(true)
+                                  }}
+                                  className='px-3 py-1.5 rounded-lg border border-amber-400 text-amber-600 text-xs font-bold shadow-sm hover:bg-amber-50 transition-colors inline-block'
+                                >
+                                  Rate Product
+                                </button>
+                              );
+                            })()}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -186,6 +230,19 @@ const MyOrders = () => {
           onConfirm={handleCancelOrder}
           loading={cancelOrderModal.loading}
           orderId={orders.find(o => o._id === cancelOrderModal.orderId)?.orderId}
+        />
+      )}
+
+      {reviewModalOpen && (
+        <ReviewModal
+          close={() => {
+            setReviewModalOpen(false)
+            setExistingReview(null)
+          }}
+          product={selectedProduct}
+          orderId={selectedOrderId}
+          existingReview={existingReview}
+          onSuccess={mutateReviews}
         />
       )}
     </div>

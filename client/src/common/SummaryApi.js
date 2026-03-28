@@ -176,6 +176,26 @@ const SummaryApi = {
     markAllOrdersAsSeen: {
         url: '/api/order/mark-as-seen',
         method: 'put'
+    },
+    addReview: {
+        url: '/api/review/add',
+        method: 'post'
+    },
+    getProductReviews: {
+        url: '/api/review/product',
+        method: 'get'
+    },
+    editReview: {
+        url: '/api/review', // + /:reviewId
+        method: 'put'
+    },
+    deleteReview: {
+        url: '/api/review', // + /:reviewId
+        method: 'delete'
+    },
+    getUserReviews: {
+        url: '/api/review/user/my-reviews',
+        method: 'get'
     }
 }
 export default SummaryApi

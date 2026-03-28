@@ -98,7 +98,7 @@ const OrderSuccessPage = () => {
                         </h3>
                         <div className="space-y-3">
                             {order.products?.map((item, index) => (
-                                <div key={index} className="flex items-center gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                                <div key={index} className="flex items-start sm:items-center gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                                     <div className="w-12 h-12 bg-white rounded-lg flex-shrink-0 border border-slate-100 flex items-center justify-center p-1 shadow-sm">
                                         <img
                                             src={Array.isArray(item.image) ? item.image[0] : item.image}
@@ -107,7 +107,7 @@ const OrderSuccessPage = () => {
                                         />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[11px] font-black text-slate-800 truncate uppercase tracking-tighter">{item.name}</p>
+                                        <p className="text-[11px] font-black text-slate-800 line-clamp-2 md:line-clamp-none md:truncate uppercase tracking-tighter">{item.name}</p>
                                         {item.variations?.length > 0 && (
                                             <div className="flex flex-wrap items-center gap-1.5 mt-0.5 mb-1">
                                                 {item.variations.map((v, i) => (

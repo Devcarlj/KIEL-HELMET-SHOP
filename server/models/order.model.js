@@ -108,7 +108,12 @@ const orderSchema = new mongoose.Schema({
                 ref: 'User'
             }
         }
-    ]
+    ],
+
+    comment: {
+        type: String,
+        default: ""
+    }
 
 }, {
     timestamps: true
