@@ -24,7 +24,8 @@ const UploadProductPage = () => {
     price: "",
     discount: "",
     more_details: {},
-    variations: []
+    variations: [],
+    variationStocks: []
   })
 
   const [fieldName, setFieldName] = useState("")
@@ -56,10 +57,38 @@ const UploadProductPage = () => {
     fetchSubCategories()
   }, [])
 
+  // Calculate total stock if variations exist
+  useEffect(() => {
+    if (data.variationStocks.length > 0) {
+      const totalStock = data.variationStocks.reduce((sum, vs) => sum + (Number(vs.stock) || 0), 0)
+      setData(prev => ({
+        ...prev,
+        stock: totalStock.toString()
+      }))
+    }
+  }, [data.variationStocks])
+
   // Filter subCategories based on selected category
   const filteredSubCategories = subCategoryList.filter(
     (subCat) => subCat.category.some(c => data.category.some(dc => dc._id === (c._id || c)))
   )
+
+  const generateCombinations = (variations, defaultPrice = 0) => {
+    if (variations.length === 0) return []
+    const results = []
+    const helper = (currentCombination, index) => {
+      if (index === variations.length) {
+        results.push({ combinations: currentCombination, stock: 0, price: defaultPrice })
+        return
+      }
+      const { name, options } = variations[index]
+      options.forEach(option => {
+        helper({ ...currentCombination, [name]: option }, index + 1)
+      })
+    }
+    helper({}, 0)
+    return results
+  }
 
   const handleOnChange = (e) => {
     const { name, value } = e.target
@@ -126,7 +155,8 @@ const UploadProductPage = () => {
           price: data.price,
           discount: data.discount,
           more_details: data.more_details,
-          variations: data.variations
+          variations: data.variations,
+          variationStocks: data.variationStocks
         }
       })
 
@@ -143,7 +173,8 @@ const UploadProductPage = () => {
           price: "",
           discount: "",
           more_details: {},
-          variations: []
+          variations: [],
+          variationStocks: []
         })
       } else {
         toast.error(response.data.message)
@@ -434,8 +465,12 @@ const UploadProductPage = () => {
                       e.preventDefault();
                     }
                   }}
-                  className='bg-slate-50 p-3.5 border border-slate-200 rounded-xl outline-none focus:border-cta-yellow focus:ring-4 focus:ring-cta-yellow/10 transition-all text-slate-700'
+                  readOnly={data.variationStocks.length > 0}
+                  className={`bg-slate-50 p-3.5 border border-slate-200 rounded-xl outline-none focus:border-cta-yellow focus:ring-4 focus:ring-cta-yellow/10 transition-all text-slate-700 ${data.variationStocks.length > 0 ? 'bg-slate-50 cursor-not-allowed opacity-80 font-bold' : ''}`}
                 />
+                {data.variationStocks.length > 0 && (
+                  <p className='text-[10px] text-cta-yellow font-bold mt-1 uppercase tracking-wider'>Calculated from variations</p>
+                )}
               </div>
             </div>
 
@@ -606,7 +641,12 @@ const UploadProductPage = () => {
                               type="button"
                               onClick={() => {
                                 const updated = data.variations.filter((_, i) => i !== index)
-                                setData(prev => ({ ...prev, variations: updated }))
+                                const newCombinations = generateCombinations(updated, data.price)
+                                setData(prev => ({ 
+                                  ...prev, 
+                                  variations: updated,
+                                  variationStocks: newCombinations
+                                }))
                               }}
                               className='text-slate-300 hover:text-red-500 transition-colors'
                             >
@@ -656,12 +696,16 @@ const UploadProductPage = () => {
                             toast.error("Please enter at least one option")
                             return
                           }
+                          const newVariations = [
+                            ...data.variations,
+                            { name: variationName, options: optionsArray }
+                          ]
+                          const newCombinations = generateCombinations(newVariations, data.price)
+                          
                           setData(prev => ({
                             ...prev,
-                            variations: [
-                              ...prev.variations,
-                              { name: variationName, options: optionsArray }
-                            ]
+                            variations: newVariations,
+                            variationStocks: newCombinations
                           }))
                           setVariationName("")
                           setVariationOptions("")
@@ -674,6 +718,64 @@ const UploadProductPage = () => {
                       Add
                     </button>
                   </div>
+
+                  {/* Variation Stocks Table */}
+                  {data.variationStocks.length > 0 && (
+                    <div className='mt-6 border-t border-slate-200 pt-4'>
+                      <h4 className='text-xs font-bold text-slate-700 mb-3 tracking-wide'>SET STOCK PER VARIATION</h4>
+                      <div className='grid gap-3'>
+                        {data.variationStocks.map((vs, idx) => (
+                            <div className='flex items-center gap-4 bg-white p-3 rounded-lg border border-slate-100 shadow-sm'>
+                              <div className='flex-1 min-w-0'>
+                                <div className='flex flex-wrap gap-1.5'>
+                                  {Object.entries(vs.combinations).map(([key, value]) => (
+                                    <span key={key} className='text-[10px] font-bold bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 truncate'>
+                                      {key}: <span className='text-slate-900'>{value}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className='flex items-center gap-2 shrink-0'>
+                                <div className='w-20'>
+                                  <label className='text-[9px] font-bold text-slate-400 block mb-0.5 uppercase tracking-tighter'>STOCK</label>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder="Stock"
+                                    value={vs.stock ?? ""}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      if (val !== "" && !/^\d*$/.test(val)) return
+                                      const updatedStocks = [...data.variationStocks]
+                                      updatedStocks[idx].stock = val
+                                      setData(prev => ({ ...prev, variationStocks: updatedStocks }))
+                                    }}
+                                    className='w-full bg-slate-50 p-1.5 border border-slate-200 rounded-lg outline-none focus:border-cta-yellow text-xs text-center font-bold'
+                                  />
+                                </div>
+                                <div className='w-24'>
+                                  <label className='text-[9px] font-bold text-slate-400 block mb-0.5 uppercase tracking-tighter'>PRICE</label>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder={data.price || "Price"}
+                                    value={vs.price ?? ""}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      if (val !== "" && !/^\d*$/.test(val)) return
+                                      const updatedStocks = [...data.variationStocks]
+                                      updatedStocks[idx].price = val
+                                      setData(prev => ({ ...prev, variationStocks: updatedStocks }))
+                                    }}
+                                    className='w-full bg-slate-50 p-1.5 border border-slate-200 rounded-lg outline-none focus:border-cta-yellow text-xs text-center font-bold text-cta-yellow'
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>

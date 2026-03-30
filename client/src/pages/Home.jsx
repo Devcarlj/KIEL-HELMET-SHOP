@@ -12,7 +12,7 @@ const Home = () => {
 
   return (
     <section className="bg-brand-cream min-h-screen">
-      <div className="container mx-auto px-4 lg:px-6 py-2">
+      <div className="w-full px-4 md:px-10 lg:px-16 py-2">
         <div className="group relative w-full h-full min-h-[80px] md:min-h-[350px] lg:min-h-[85px] bg-brand-cream-dark rounded-lg lg:rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-500 cursor-pointer">
           <picture>
             <source srcSet={banner} media="(min-width: 640px)" fetchPriority="high" />

@@ -12,6 +12,7 @@ import { setCart } from './store/cartSlice.js'
 import { useDispatch } from 'react-redux';
 
 import ScrollToTop from './components/ScrollToTop.jsx'
+import Chatbot from './components/Chatbot.jsx'
 
 import useSWR from 'swr'
 import SummaryApi from './common/SummaryApi.js'
@@ -68,6 +69,7 @@ function App() {
             </main>
             <Footer />
             <Toaster />
+            <Chatbot />
         </>
     )
 }

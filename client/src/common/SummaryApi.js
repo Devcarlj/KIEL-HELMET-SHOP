@@ -196,6 +196,14 @@ const SummaryApi = {
     getUserReviews: {
         url: '/api/review/user/my-reviews',
         method: 'get'
+    },
+    chatMessage: {
+        url: '/api/chat/message',
+        method: 'post'
+    },
+    chatMessageStream: {
+        url: '/api/chat/message/stream',
+        method: 'post'
     }
 }
 export default SummaryApi

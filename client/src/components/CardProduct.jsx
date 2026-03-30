@@ -11,7 +11,7 @@ const CardProduct = ({ data }) => {
         <Link
             to={`/product/${data._id}`}
             state={{ product: data }}
-            className='min-w-[170px] md:min-w-[220px] max-w-[170px] md:max-w-[220px] bg-white group rounded-[2.5rem] p-4 border border-slate-100/50 hover:border-secondary/30 shadow-sm hover:shadow-2xl transition-all duration-500 relative flex flex-col'
+            className='w-full min-w-[150px] bg-white group rounded-[2.5rem] p-4 border border-slate-100/50 hover:border-secondary/30 shadow-sm hover:shadow-2xl transition-all duration-500 relative flex flex-col'
         >
             {/* Discount Badge */}
             {data.discount > 0 && (
@@ -43,8 +43,8 @@ const CardProduct = ({ data }) => {
                     {data.name}
                 </h3>
 
-                <div className='mt-auto flex flex-wrap items-end justify-between gap-y-2 gap-x-1 border-t border-slate-50 pt-4'>
-                    <div className='flex flex-col min-w-[60px] flex-1'>
+                <div className='mt-auto flex items-center justify-between gap-x-2 border-t border-slate-50 pt-4'>
+                    <div className='flex flex-col min-w-[60px]'>
                         {data.discount > 0 && (
                             <span className='text-[10px] text-slate-400 line-through font-bold'>
                                 {DisplayPrice(data.price)}
@@ -55,21 +55,13 @@ const CardProduct = ({ data }) => {
                         </span>
                     </div>
 
-                    <div className='flex-shrink-0 ml-auto'>
-                        {data.variations?.length > 0 ? (
-                            <div className='h-9 px-4 bg-primary border-2 border-primary text-white shadow-lg shadow-primary/20 rounded-2xl flex items-center justify-center gap-1.5 transition-all duration-300 active:scale-95 group-hover:-translate-y-1 font-black uppercase text-[10px] tracking-wider'>
-                                <span>Options</span>
-                                <svg className='w-3 h-3' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
-                                    <path d='M9 5l7 7-7 7' />
-                                </svg>
-                            </div>
-                        ) : (
-                            <AddToCartButton
-                                productId={data._id}
-                                productData={data}
-                                size='sm'
-                            />
-                        )}
+                    <div className='flex-shrink-0'>
+                        <div className='h-8 px-2 bg-primary border-2 border-primary text-white shadow-lg shadow-primary/20 rounded-xl flex items-center justify-center gap-1 transition-all duration-300 active:scale-95 group-hover:-translate-y-1 font-black uppercase text-[10px] tracking-wider'>
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth={4} viewBox='0 0 24 24'>
+                                <path d='M12 5v14M5 12h14' />
+                            </svg>
+                            <span>Add</span>
+                        </div>
                     </div>
                 </div>
             </div>

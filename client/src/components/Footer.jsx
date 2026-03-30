@@ -5,8 +5,8 @@ import logo from '../assets/KielHelmetShop2.png'
 
 const Footer = () => {
     return (
-        <footer className='bg-brand-primary text-brand-cream pt-12 pb-6 border-t-4 border-brand-secondary'>
-            <div className='container mx-auto px-4'>
+        <footer className='bg-brand-primary text-brand-cream pt-12 pb-20 md:pb-10 border-t-4 border-brand-secondary'>
+            <div className='w-full px-4 md:px-10 lg:px-16'>
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10'>
                     
                     {/* Brand Section */}

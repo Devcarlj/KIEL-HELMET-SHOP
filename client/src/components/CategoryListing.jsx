@@ -9,7 +9,7 @@ const CategoryListing = () => {
     const categories = categoriesData?.success ? categoriesData.data : []
 
     return (
-        <section className="container mx-auto px-4 mt-6">
+        <section className="w-full px-4 md:px-10 lg:px-16 mt-6">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl md:text-2xl font-bold text-neutral-800">Shop by Categories</h2>
             </div>

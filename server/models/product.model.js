@@ -58,6 +58,14 @@ const productSchema = new mongoose.Schema({
         }
     ],
 
+    variationStocks: [
+        {
+            combinations: { type: Object, default: {} },
+            stock: { type: Number, default: 0 },
+            price: { type: Number, default: null }
+        }
+    ],
+
     public: {
         type: Boolean,
         default: true

@@ -77,7 +77,7 @@ const SearchPage = () => {
 
   return (
     <section className='bg-white min-h-screen'>
-      <div className='container mx-auto px-4 lg:px-6 py-4 md:py-6'>
+      <div className='w-full px-4 md:px-10 lg:px-16 py-4 md:py-6'>
         {/* Breadcrumb */}
         <div className='flex items-center gap-1 text-[11px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mb-3 md:mb-4'>
           <Link to='/' className='hover:text-primary'>Home</Link>

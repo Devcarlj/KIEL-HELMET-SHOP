@@ -8,7 +8,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
     const containerRef = useRef()
 
     const { data: productsData, isLoading: loading } = useSWR(
-        id ? { ...SummaryApi.getProductsByCategory, data: { id, limit: 10 } } : null
+        id ? { ...SummaryApi.getProductsByCategory, data: { id, limit: 12 } } : null
     )
     const data = productsData?.success ? productsData.data : []
 
@@ -23,7 +23,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
     if (!loading && data.length === 0) return null;
 
     return (
-        <section className='container mx-auto px-4 mt-8 md:mt-16 group/section'>
+        <section className='w-full px-4 md:px-10 lg:px-16 mt-8 md:mt-16 group/section'>
             <div className='flex items-end justify-between mb-8 pb-2 border-b-2 border-slate-50'>
                 <div className='relative'>
                     <h3 className='text-xl md:text-3xl font-black text-slate-800 tracking-tight'>
@@ -44,28 +44,33 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
                 >
                     {loading ? (
                         [...Array(6)].map((_, i) => (
-                            <div key={i} className='min-w-[170px] md:min-w-[220px] aspect-[1/1.6] bg-slate-100 animate-pulse rounded-[2.5rem] border border-slate-100'></div>
+                            <div key={i} className='shrink-0 min-w-[160px] md:min-w-[220px] xl:min-w-[calc((100%-140px)/6)] max-w-[160px] md:max-w-[220px] xl:max-w-[calc((100%-140px)/6)]'>
+                                <div className='w-full aspect-[1/1.6] bg-slate-100 animate-pulse rounded-[2.5rem] border border-slate-100' />
+                            </div>
                         ))
                     ) : (
                         data.map((product) => (
-                            <CardProduct key={product._id} data={product} />
+                            <div key={product._id} className='shrink-0 min-w-[160px] md:min-w-[220px] xl:min-w-[calc((100%-140px)/6)] max-w-[160px] md:max-w-[220px] xl:max-w-[calc((100%-140px)/6)]'>
+                                <CardProduct data={product} />
+                            </div>
                         ))
                     )}
                 </div>
 
-                {/* Pre/Next Arrows (Desktop only) */}
-                <div className='hidden lg:flex items-center justify-between w-full absolute top-1/2 -translate-y-1/2 pointer-events-none -mx-4'>
+
+                {/* Pre/Next Arrows (Desktop Only) */}
+                <div className='hidden md:flex items-center justify-between w-full absolute top-1/2 -translate-y-1/2 pointer-events-none -mx-4 z-10'>
                     <button
                         onClick={handlePrev}
-                        className='pointer-events-auto w-12 h-12 bg-white/95 backdrop-blur-md shadow-xl text-slate-800 rounded-2xl scale-0 group-hover/section:scale-100 transition-all duration-300 hover:bg-white border border-slate-100 flex items-center justify-center active:scale-90 group/prev group-hover/section:translate-x-4'
+                        className='pointer-events-auto w-10 h-10 md:w-12 md:h-12 bg-white/95 backdrop-blur-md shadow-xl text-slate-800 rounded-2xl md:scale-0 group-hover/section:md:scale-100 transition-all duration-300 hover:bg-white border border-slate-100 flex items-center justify-center active:scale-90 group/prev group-hover/section:translate-x-6'
                     >
-                        <svg className='w-5 h-5 stroke-[3] group-hover/prev:-translate-x-1 transition-transform text-slate-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7'></path></svg>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 stroke-[3] group-hover/prev:-translate-x-1 transition-transform text-slate-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7'></path></svg>
                     </button>
                     <button
                         onClick={handleNext}
-                        className='pointer-events-auto w-12 h-12 bg-white/95 backdrop-blur-md shadow-xl text-slate-800 rounded-2xl scale-0 group-hover/section:scale-100 transition-all duration-300 hover:bg-white border border-slate-100 flex items-center justify-center active:scale-90 group/next group-hover/section:-translate-x-4'
+                        className='pointer-events-auto w-10 h-10 md:w-12 md:h-12 bg-white/95 backdrop-blur-md shadow-xl text-slate-800 rounded-2xl md:scale-0 group-hover/section:md:scale-100 transition-all duration-300 hover:bg-white border border-slate-100 flex items-center justify-center active:scale-90 group/next group-hover/section:-translate-x-6'
                     >
-                        <svg className='w-5 h-5 stroke-[3] group-hover/next:translate-x-1 transition-transform text-slate-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M9 5l7 7-7 7'></path></svg>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 stroke-[3] group-hover/next:translate-x-1 transition-transform text-slate-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M9 5l7 7-7 7'></path></svg>
                     </button>
                 </div>
             </div>

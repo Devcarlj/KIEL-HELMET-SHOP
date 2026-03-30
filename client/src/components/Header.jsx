@@ -58,7 +58,7 @@ const Header = () => {
   return (
     <>
       <header className='h-auto md:h-24 shadow-md sticky top-0 bg-brand-primary text-brand-cream z-50 py-2 md:py-0 flex items-center'>
-        <div className='container mx-auto px-4 w-full'>
+        <div className='w-full px-4 md:px-10 lg:px-16'>
           <div className='flex items-center justify-between gap-4 w-full'>
 
             <div className='flex items-center gap-0 md:gap-2'> 
@@ -148,7 +148,7 @@ const Header = () => {
           </div>
 
           {/* BOTTOM ROW: SEARCH (Mobile) */}
-          <div className='mt-3 md:hidden w-full pb-1'>
+          <div className='mt-3 md:hidden w-full pb-0'>
             <Search isMobile={true} />
           </div>
         </div>

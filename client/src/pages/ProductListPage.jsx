@@ -47,7 +47,7 @@ const ProductListPage = () => {
 
   return (
     <section className='bg-white min-h-screen'>
-      <div className='container mx-auto px-4 lg:px-6 py-4 md:py-6'>
+      <div className='w-full px-4 md:px-10 lg:px-16 py-4 md:py-6'>
         {/* Breadcrumb / Header */}
         <div className='flex flex-col gap-2 mb-4 md:mb-6'>
           <div className='text-[11px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em] flex items-center gap-1'>
@@ -148,10 +148,9 @@ const ProductListPage = () => {
             )}
           </aside>
 
-          {/* Right: Products */}
           <div className='flex-1 min-w-0'>
             {loading ? (
-              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5'>
+              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5'>
                 {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
@@ -175,7 +174,7 @@ const ProductListPage = () => {
                 )}
               </div>
             ) : (
-              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5'>
+              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5'>
                 {visibleProducts.map(product => (
                   <CardProduct key={product._id} data={product} />
                 ))}

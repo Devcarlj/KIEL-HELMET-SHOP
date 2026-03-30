@@ -11,7 +11,7 @@ import {
     selectProductQtyInCart
 } from '../store/cartSlice'
 
-const AddToCartButton = ({ productId, productData, size = 'md', variations = [], disabled = false }) => {
+const AddToCartButton = ({ productId, productData, size = 'md', variant = 'solid', variations = [], disabled = false }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const user = useSelector((state) => state.user)
@@ -144,21 +144,27 @@ const AddToCartButton = ({ productId, productData, size = 'md', variations = [],
 
     // Sizing classes
     const isSmall = size === 'sm'
-    const btnH = isSmall ? 'h-9' : 'h-10 md:h-12'
-    const btnPx = isSmall ? 'px-2' : 'px-4 md:px-6'
-    const textSize = isSmall ? 'text-[10px]' : 'text-xs md:text-[13px]'
-    const counterTextSize = isSmall ? 'text-xs' : 'text-sm md:text-base'
+    const isLarge = size === 'lg'
+    const btnH = isSmall ? 'h-9' : isLarge ? 'h-full w-full' : 'h-10 md:h-12'
+    const btnPx = isSmall ? 'px-2' : isLarge ? 'px-6' : 'px-4 md:px-6'
+    const textSize = isSmall ? 'text-[10px]' : isLarge ? 'text-sm' : 'text-xs md:text-[13px]'
+    const counterTextSize = isSmall ? 'text-xs' : isLarge ? 'text-base md:text-lg' : 'text-sm md:text-base'
+
+    const isOutline = variant === 'outline'
+    const baseBtnClasses = `${btnH} ${btnPx} rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-90 active:translate-y-0.5 group-hover:-translate-y-1 border-2 flex-shrink-0`
+    const solidClasses = 'bg-primary hover:bg-orange-500 text-white shadow-lg shadow-orange-200/50 border-transparent hover:border-white/20'
+    const outlineClasses = 'bg-white border-primary text-primary hover:bg-orange-50 shadow-sm'
 
     if (qty === 0) {
         return (
             <button
                 onClick={handleAddToCart}
                 disabled={loading || disabled}
-                className={`${btnH} ${btnPx} ${disabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-primary hover:bg-orange-500 text-white shadow-lg shadow-orange-200/50'} rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-90 active:translate-y-0.5 group-hover:-translate-y-1 border-2 border-transparent hover:border-white/20 flex-shrink-0`}
+                className={`${baseBtnClasses} ${disabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed border-transparent' : isOutline ? outlineClasses : solidClasses}`}
             >
                 <div className='flex items-center gap-1.5'>
                     {loading ? (
-                        <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                        <div className={`w-4 h-4 border-2 ${isOutline ? 'border-primary' : 'border-white'} border-t-transparent rounded-full animate-spin`} />
                     ) : (
                         <>
                             <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>

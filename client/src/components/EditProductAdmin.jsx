@@ -29,7 +29,8 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
         price: productData.price || "",
         discount: productData.discount || "",
         more_details: productData.more_details || {},
-        variations: productData.variations || []
+        variations: productData.variations || [],
+        variationStocks: productData.variationStocks || []
     })
 
     const [fieldName, setFieldName] = useState("")
@@ -37,7 +38,7 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
     const [openMoreDetails, setOpenMoreDetails] = useState(false)
     const [variationName, setVariationName] = useState("")
     const [variationOptions, setVariationOptions] = useState("")
-    const [openVariations, setOpenVariations] = useState(false)
+    const [openVariations, setOpenVariations] = useState(productData.variations?.length > 0)
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -60,9 +61,45 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
         fetchSubCategories()
     }, [])
 
+    useEffect(() => {
+        // Lock body scroll when modal is open
+        const originalStyle = window.getComputedStyle(document.body).overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = originalStyle;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (data.variationStocks.length > 0) {
+            const totalStock = data.variationStocks.reduce((sum, vs) => sum + (Number(vs.stock) || 0), 0)
+            setData(prev => ({
+                ...prev,
+                stock: totalStock.toString()
+            }))
+        }
+    }, [data.variationStocks])
+
     const filteredSubCategories = subCategoryList.filter(
         (subCat) => subCat.category.some(c => data.category.some(dc => dc._id === (c._id || c)))
     )
+
+    const generateCombinations = (variations, defaultPrice = 0) => {
+        if (variations.length === 0) return []
+        const results = []
+        const helper = (currentCombination, index) => {
+            if (index === variations.length) {
+                results.push({ combinations: currentCombination, stock: 0, price: defaultPrice })
+                return
+            }
+            const { name, options } = variations[index]
+            options.forEach(option => {
+                helper({ ...currentCombination, [name]: option }, index + 1)
+            })
+        }
+        helper({}, 0)
+        return results
+    }
 
     const handleOnChange = (e) => {
         const { name, value } = e.target
@@ -137,7 +174,8 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                     price: data.price,
                     discount: data.discount,
                     more_details: data.more_details,
-                    variations: data.variations
+                    variations: data.variations,
+                    variationStocks: data.variationStocks
                 }
             })
 
@@ -158,10 +196,14 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
     const isFormValid = data.name && data.description && data.image.length > 0 && data.category.length > 0 && !loading
 
     return (
-        <section className='fixed inset-0 z-50 bg-neutral-800/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-4'>
-            <div className='bg-white max-w-2xl w-full rounded-xl shadow-lg border border-slate-100 overflow-hidden mt-4 md:mt-0 max-h-[95vh] flex flex-col'>
-                {/* Header */}
-                <div className='p-4 md:p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0'>
+        <section className='fixed inset-0 z-[100] bg-neutral-900/70 backdrop-blur-sm flex flex-col items-center justify-center p-0 md:p-4 overscroll-none'>
+            <div className='bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-2xl md:rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col relative animate-in fade-in zoom-in duration-200'>
+                <form 
+                    onSubmit={handleSubmit}
+                    className='flex flex-col h-full'
+                >
+                    {/* Header */}
+                    <div className='p-4 md:p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0'>
                     <div>
                         <h2 className='font-bold text-xl text-slate-800'>Edit Product</h2>
                         <p className='text-sm text-slate-500 mt-1'>Update the product details below.</p>
@@ -171,9 +213,9 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                     </button>
                 </div>
 
-                {/* Form */}
-                <div className='overflow-y-auto flex-1 p-4 md:p-6'>
-                    <form className='grid gap-6' onSubmit={handleSubmit}>
+                {/* Form Content */}
+                <div className='overflow-y-auto flex-1 p-4 md:p-6 overscroll-contain pb-32'>
+                    <div className='grid gap-6'>
                         {/* Product Name */}
                         <div className='grid gap-2'>
                             <label className='text-sm font-bold text-slate-700' htmlFor='productName'>
@@ -430,15 +472,19 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                     id='productStock'
                                     name='stock'
                                     placeholder='e.g. 100'
-                                    value={data.stock}
+                                    value={data.stock ?? ""}
                                     onChange={handleOnChange}
                                     onKeyDown={(e) => {
                                         if (e.key === '.' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
                                             e.preventDefault();
                                         }
                                     }}
-                                    className='w-full bg-slate-50 p-3.5 border border-slate-200 rounded-xl outline-none focus:border-cta-yellow focus:ring-4 focus:ring-cta-yellow/10 transition-all text-slate-700'
+                                    readOnly={data.variationStocks.length > 0}
+                                    className={`w-full bg-slate-50 p-3.5 border border-slate-200 rounded-xl outline-none focus:border-cta-yellow focus:ring-4 focus:ring-cta-yellow/10 transition-all text-slate-700 ${data.variationStocks.length > 0 ? 'bg-slate-50 cursor-not-allowed opacity-80 font-bold' : ''}`}
                                 />
+                                {data.variationStocks.length > 0 && (
+                                    <p className='text-[10px] text-cta-yellow font-bold mt-1 uppercase tracking-wider'>Calculated from variations</p>
+                                )}
                             </div>
                         </div>
 
@@ -455,7 +501,7 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                     id='productPrice'
                                     name='price'
                                     placeholder='e.g. 1500'
-                                    value={data.price}
+                                    value={data.price ?? ""}
                                     onChange={handleOnChange}
                                     onKeyDown={(e) => {
                                         if (e.key === '.' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
@@ -477,7 +523,7 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                     id='productDiscount'
                                     name='discount'
                                     placeholder='e.g. 10'
-                                    value={data.discount}
+                                    value={data.discount ?? ""}
                                     onChange={handleOnChange}
                                     onKeyDown={(e) => {
                                         if (e.key === '.' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
@@ -609,7 +655,12 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                                             type="button"
                                                             onClick={() => {
                                                                 const updated = data.variations.filter((_, i) => i !== index)
-                                                                setData(prev => ({ ...prev, variations: updated }))
+                                                                const newCombinations = generateCombinations(updated)
+                                                                setData(prev => ({ 
+                                                                  ...prev, 
+                                                                  variations: updated,
+                                                                  variationStocks: newCombinations
+                                                                }))
                                                             }}
                                                             className='text-slate-300 hover:text-red-500 transition-colors'
                                                         >
@@ -659,12 +710,16 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                                         toast.error("Please enter at least one option")
                                                         return
                                                     }
+                                                    const newVariations = [
+                                                        ...data.variations,
+                                                        { name: variationName, options: optionsArray }
+                                                    ]
+                                                    const newCombinations = generateCombinations(newVariations, data.price)
+                                                    
                                                     setData(prev => ({
                                                         ...prev,
-                                                        variations: [
-                                                            ...prev.variations,
-                                                            { name: variationName, options: optionsArray }
-                                                        ]
+                                                        variations: newVariations,
+                                                        variationStocks: newCombinations
                                                     }))
                                                     setVariationName("")
                                                     setVariationOptions("")
@@ -677,6 +732,64 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                             Add
                                         </button>
                                     </div>
+
+                                    {/* Variation Stocks Table */}
+                                    {data.variationStocks.length > 0 && (
+                                        <div className='mt-6 border-t border-slate-200 pt-4'>
+                                            <h4 className='text-xs font-bold text-slate-700 mb-3 tracking-wide text-center'>SET STOCK PER VARIATION</h4>
+                                            <div className='grid gap-3'>
+                                                {data.variationStocks.map((vs, idx) => (
+                                                    <div key={idx} className='flex items-center gap-4 bg-white p-3 rounded-lg border border-slate-100 shadow-sm'>
+                                                        <div className='flex-1 min-w-0'>
+                                                            <div className='flex flex-wrap gap-1.5'>
+                                                                {Object.entries(vs.combinations).map(([key, value]) => (
+                                                                    <span key={key} className='text-[10px] font-bold bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 truncate'>
+                                                                        {key}: <span className='text-slate-900'>{value}</span>
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div className='flex items-center gap-2 shrink-0'>
+                                                            <div className='w-20'>
+                                                                <label className='text-[9px] font-bold text-slate-400 block mb-0.5 uppercase tracking-tighter'>STOCK</label>
+                                                                <input
+                                                                    type="text"
+                                                                    inputMode="numeric"
+                                                                    placeholder="Stock"
+                                                                    value={vs.stock ?? ""}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value
+                                                                        if (val !== "" && !/^\d*$/.test(val)) return
+                                                                        const updatedStocks = [...data.variationStocks]
+                                                                        updatedStocks[idx].stock = val
+                                                                        setData(prev => ({ ...prev, variationStocks: updatedStocks }))
+                                                                    }}
+                                                                    className='w-full bg-slate-50 p-1.5 border border-slate-200 rounded-lg outline-none focus:border-cta-yellow text-xs text-center font-bold'
+                                                                />
+                                                            </div>
+                                                            <div className='w-24'>
+                                                                <label className='text-[9px] font-bold text-slate-400 block mb-0.5 uppercase tracking-tighter'>PRICE</label>
+                                                                <input
+                                                                    type="text"
+                                                                    inputMode="numeric"
+                                                                    placeholder={data.price || "Price"}
+                                                                    value={vs.price ?? ""}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value
+                                                                        if (val !== "" && !/^\d*$/.test(val)) return
+                                                                        const updatedStocks = [...data.variationStocks]
+                                                                        updatedStocks[idx].price = val
+                                                                        setData(prev => ({ ...prev, variationStocks: updatedStocks }))
+                                                                    }}
+                                                                    className='w-full bg-slate-50 p-1.5 border border-slate-200 rounded-lg outline-none focus:border-cta-yellow text-xs text-center font-bold text-cta-yellow'
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -727,8 +840,8 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                             <p className='text-[11px] text-slate-400 mt-1'>Upload multiple product images. PNG, JPG up to 5MB each.</p>
                         </div>
 
-                        {/* Submit Button */}
-                        <div className='pt-4'>
+                        {/* Submit Button Inside Scroll Area */}
+                        <div className='mt-8 pb-40'>
                             <button
                                 type='submit'
                                 disabled={!isFormValid}
@@ -744,8 +857,10 @@ const EditProductAdmin = ({ close, productData, fetchProducts }) => {
                                 {loading ? "Updating Product..." : "Update Product"}
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
+
+                </form>
             </div>
         </section>
     )
