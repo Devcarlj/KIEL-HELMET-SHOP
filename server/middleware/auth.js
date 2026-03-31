@@ -24,14 +24,13 @@ try {
     next()
 
     console.log('decode', decode)
-} catch (error) {
-    
-    return response.status(500).json({
-        message : error.message || error,
-        error : true,
-        sucess : false
-    });
-}
+    } catch (error) {
+        return response.status(401).json({
+            message : "Invalid or expired token",
+            error : true,
+            success : false
+        });
+    }
 }
 
 export default auth;

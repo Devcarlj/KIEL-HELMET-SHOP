@@ -53,7 +53,7 @@ const DisplayProductPage = () => {
       }
     }
 
-    if (!product && productId) {
+    if (!product || product._id !== productId) {
       fetchProduct()
     }
   }, [product, productId])

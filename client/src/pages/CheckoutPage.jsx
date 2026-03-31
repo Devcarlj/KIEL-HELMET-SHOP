@@ -12,7 +12,13 @@ import toast from 'react-hot-toast';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
+  developerTools: {
+    assistant: {
+      enabled: false,
+    },
+  },
+});
 
 // ─── Stripe Payment Form Component ───────────────────────────────────────────
 const StripePaymentForm = ({ onPaymentSuccess, onPaymentError, placingOrder, setPlacingOrder }) => {
@@ -333,6 +339,7 @@ const CheckoutPage = () => {
 
   const stripeElementsOptions = clientSecret ? {
     clientSecret,
+    assistant: { enabled: false },
     appearance: {
       theme: 'stripe',
       variables: {

@@ -28,7 +28,7 @@ const MODELS_LADDER = [
 const getGenerationConfig = (modelName) => {
     const base = {
         temperature: 0.5,
-        maxOutputTokens: 500,
+        maxOutputTokens: 1024, // Increased from 500 to prevent message cutoff (JSON takes extra tokens)
     };
 
     if (modelName.startsWith("gemini-3")) {
@@ -41,6 +41,24 @@ const getGenerationConfig = (modelName) => {
     // Gemini 2.0 and 1.5 do NOT support thinkingConfig — omit it entirely
 
     return base;
+};
+
+// ─── Context Window Cap ─────────────────────────────────────────────────────
+// Only send the last N user↔model exchanges to the AI.
+// Keeps input tokens very low → protects the free-tier budget.
+const CONTEXT_WINDOW = 4; // Use an even number (e.g. 4) to capture 2 full user↔model exchanges
+
+const trimHistory = (history) => {
+    if (!history || history.length === 0) return [];
+    let trimmed = history.slice(-CONTEXT_WINDOW);
+    
+    // Gemini strictly requires the history array to start with a 'user' message.
+    // If trimming caused it to start with a 'model' message, remove the first element.
+    while (trimmed.length > 0 && trimmed[0].role !== 'user') {
+        trimmed.shift();
+    }
+    
+    return trimmed;
 };
 
 // ─── Product Cache (avoid DB hit on every message) ───
@@ -56,7 +74,7 @@ const getProductData = async () => {
     // Limit to Top 20 in-stock products — prevents the system instruction
     // from growing too large as the catalog scales (keeps prefill fast)
     const products = await ProductModel.find({ public: true })
-        .select("name price stock discount")
+        .select("name price stock discount _id slug")
         .sort({ stock: -1, discount: -1 }) // Prioritise in-stock & discounted items
         .limit(20)
         .lean(); // .lean() returns plain JS objects — faster
@@ -64,7 +82,7 @@ const getProductData = async () => {
     const productString = products.map(p => {
         const dp = p.discount > 0 ? Math.round(p.price * (1 - p.discount / 100)) : p.price;
         const price = p.discount > 0 ? `₱${dp} (was ₱${p.price}, -${p.discount}%)` : `₱${dp}`;
-        return `- ${p.name}: ${price} | ${p.stock > 0 ? 'In Stock' : 'Sold Out'}`;
+        return `- ${p.name}: ${price} | ${p.stock > 0 ? 'In Stock' : 'Sold Out'} (ID: ${p._id}, Slug: ${p.slug || p._id})`;
     }).join("\n");
 
     productCache = { data: productString, timestamp: now };
@@ -72,20 +90,24 @@ const getProductData = async () => {
 };
 
 // ─── Optimized System Instruction (compact, bullet-point format) ───
-const buildSystemInstruction = (productDataString) => `Role: Kiel – AI Pit Crew for Kiel Helmet Shop.
-Tone: Biker-to-biker. Concise. Max 2-3 sentences per reply.
-Priority: Helmet safety, sizing, product matching.
+const buildSystemInstruction = (productDataString) => `Role: You are "Kiel," the AI Pit Crew for Kiel Helmet Shop.
+Tone: Biker-to-biker, helpful, and high-energy. Keep all responses under 3 sentences and 100 words.
 
-RULES:
-- Use ONLY prices from the product list below. Never invent prices.
-- If asked about availability, list relevant products with prices.
-- Mention ICC/PS or ECE/DOT certs when discussing safety.
-- For sizing questions, advise measuring head circumference in CM.
-- Off-topic? Redirect politely to gear talk.
-- Complex issue? Offer to connect with the shop owner via Messenger.
-- Keep responses SHORT and punchy. Riders want fast answers, not essays.
+CRITICAL OPERATIONAL RULES:
 
-PRODUCTS:
+Structured JSON Output: Whenever you recommend or mention a specific helmet from the provided context, you MUST append a JSON packet at the very end of your message.
+
+Format: {"ui": "product_card", "id": "ID_HERE", "slug": "SLUG_HERE", "name": "PRODUCT_NAME_HERE"}
+
+No Hallucinations: Use ONLY the products provided in the context string. If no match exists, say "I don't have that in the garage right now" and suggest the closest alternative.
+
+Conversion Nudges: 
+- After 3 messages, suggest: "Want to see what's in your cart?"
+- After 5 messages, suggest: "Ready to check out and hit the road?"
+
+Deep Linking: When mentioning a product in text, use the format: [Product Name](/product/slug).
+
+Product Context: 
 ${productDataString}`;
 
 // ─── Helper: Create a chat session using the model ladder ─────────────────────
@@ -109,19 +131,26 @@ const createChatSession = async (systemInstruction, history) => {
             return { chatSession, modelName };
 
         } catch (error) {
-            const isQuota =
-                error.status === 429 ||
+            // ── Detection for "Retriable" Transient Errors (Quotas, Overloads, Outages) ──
+            const isTransient =
+                error.status === 429 || 
+                error.status === 503 || 
+                error.status === 500 ||
                 error.message?.includes("429") ||
+                error.message?.includes("503") ||
                 error.message?.toLowerCase().includes("quota") ||
-                error.message?.toLowerCase().includes("rate limit");
+                error.message?.toLowerCase().includes("rate limit") ||
+                error.message?.toLowerCase().includes("high demand") ||
+                error.message?.toLowerCase().includes("overloaded") ||
+                error.message?.toLowerCase().includes("unavailable");
 
-            if (isQuota) {
-                console.warn(`⚠️  ${modelName} quota hit — dropping to next model...`);
+            if (isTransient) {
+                console.warn(`⚠️  ${modelName} hit a snag (${error.status || 'Transient'}) — dropping to next model in ladder...`);
                 lastError = error;
-                continue; // Try the next model in the ladder
+                continue; // Try the next model
             }
 
-            // Not a quota error — it's a real bug, throw immediately
+            // Not a retriable error — it's a real bug, throw immediately
             throw error;
         }
     }
@@ -159,7 +188,7 @@ export const chatWithKielStream = async (request, response) => {
                     generationConfig: getGenerationConfig(modelName),
                 });
 
-                chatSession = model.startChat({ history: history || [] });
+                chatSession = model.startChat({ history: trimHistory(history) });
 
                 // Probe: actually initiate the stream to trigger quota errors now
                 const probeResult = await chatSession.sendMessageStream(message);
@@ -192,19 +221,26 @@ export const chatWithKielStream = async (request, response) => {
                 return;
 
             } catch (error) {
-                const isQuota =
-                    error.status === 429 ||
+                // ── Detection for "Retriable" Transient Errors (Quotas, Overloads, Outages) ──
+                const isTransient =
+                    error.status === 429 || 
+                    error.status === 503 || 
+                    error.status === 500 ||
                     error.message?.includes("429") ||
+                    error.message?.includes("503") ||
                     error.message?.toLowerCase().includes("quota") ||
-                    error.message?.toLowerCase().includes("rate limit");
+                    error.message?.toLowerCase().includes("rate limit") ||
+                    error.message?.toLowerCase().includes("high demand") ||
+                    error.message?.toLowerCase().includes("overloaded") ||
+                    error.message?.toLowerCase().includes("unavailable");
 
-                if (isQuota) {
-                    console.warn(`⚠️  ${modelName} quota hit — dropping to next model in ladder...`);
+                if (isTransient) {
+                    console.warn(`⚠️  ${modelName} hit a snag (${error.status || 'Transient'}) — dropping to next model in ladder...`);
                     lastLadderError = error;
                     continue;
                 }
 
-                // Not a quota error — real bug, report immediately
+                // Not a retriable error — real bug, report immediately
                 throw error;
             }
         }
@@ -237,7 +273,7 @@ export const chatWithKiel = async (request, response) => {
         const productDataString = await getProductData();
         const systemInstruction = buildSystemInstruction(productDataString);
 
-        const { chatSession, modelName } = await createChatSession(systemInstruction, history);
+        const { chatSession, modelName } = await createChatSession(systemInstruction, trimHistory(history));
 
         const result = await chatSession.sendMessage(message);
         const reply = result.response.text();

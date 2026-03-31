@@ -17,7 +17,7 @@ export const addToCartController = async (request, response) => {
         const user = await UserModel.findById(userId);
 
         if (!user) {
-            return response.status(404).json({
+            return response.status(401).json({
                 message: "User not found",
                 error: true,
                 success: false
@@ -76,7 +76,7 @@ export const getCartItemsController = async (request, response) => {
             .populate('shopping_cart.productId');
 
         if (!user) {
-            return response.status(404).json({
+            return response.status(401).json({
                 message: "User not found",
                 error: true,
                 success: false

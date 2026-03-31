@@ -3,11 +3,63 @@ import { IoMdClose, IoMdSend } from "react-icons/io";
 import defaultAvatar from '../assets/default_user_profiles.png';
 import SummaryApi from '../common/SummaryApi';
 import toast from 'react-hot-toast';
+import { useNavigate, Link } from 'react-router-dom';
+
+const ChatProductCard = ({ id, slug, name, onClick }) => {
+  return (
+    <Link 
+      to={`/product/${id}`} // Linking by ID is safer based on how CardProduct works
+      onClick={onClick}
+      className="bg-white border text-left border-brand-primary/20 p-3 rounded-2xl shadow-sm flex items-center justify-between hover:bg-brand-cream/30 hover:border-brand-primary/40 transition-all min-w-[200px] w-full max-w-[240px] mt-1 group shrink-0"
+    >
+      <div className="flex flex-col pr-2">
+        <span className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors line-clamp-1">
+          {name ? `View ${name}` : "View Product"}
+        </span>
+        <span className="text-[10px] text-brand-primary/70 uppercase font-black tracking-wider">Tap to check details</span>
+      </div>
+      <div className="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shadow-sm group-hover:bg-brand-primary group-hover:text-white transition-colors">
+        <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
+           <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </div>
+    </Link>
+  );
+};
+
+// ─── LocalStorage Daily Counter Helpers ──────────────────────────────────────
+const DAILY_LIMIT = 20;
+const LS_DATE_KEY  = 'kiel_chat_date';
+const LS_COUNT_KEY = 'kiel_chat_count';
+
+const getTodayStr = () => new Date().toISOString().slice(0, 10);
+
+/** Returns the number of messages sent today (auto-resets if the stored date ≠ today). */
+const getDailyCount = () => {
+  const storedDate = localStorage.getItem(LS_DATE_KEY);
+  if (storedDate !== getTodayStr()) {
+    // New day — reset
+    localStorage.setItem(LS_DATE_KEY, getTodayStr());
+    localStorage.setItem(LS_COUNT_KEY, '0');
+    return 0;
+  }
+  return parseInt(localStorage.getItem(LS_COUNT_KEY) || '0', 10);
+};
+
+/** Increment and persist the daily counter. Returns the new count. */
+const incrementDailyCount = () => {
+  const newCount = getDailyCount() + 1;
+  localStorage.setItem(LS_DATE_KEY, getTodayStr());
+  localStorage.setItem(LS_COUNT_KEY, String(newCount));
+  return newCount;
+};
 
 const Chatbot = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(true); // Always start with tooltip showing
+  const [showTooltip, setShowTooltip] = useState(true);
+  const [dailyLimitReached, setDailyLimitReached] = useState(() => getDailyCount() >= DAILY_LIMIT);
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -27,10 +79,16 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages, isOpen]);
 
+  // Re-check the daily limit every time the chat opens (handles midnight reset)
+  useEffect(() => {
+    if (isOpen) {
+      setDailyLimitReached(getDailyCount() >= DAILY_LIMIT);
+    }
+  }, [isOpen]);
+
   // Initial animation: show, wait, then peek
   useEffect(() => {
     if (window.innerWidth < 768) {
-      // Show for 6 seconds to allow reading dialogue
       const timer = setTimeout(() => {
         setIsMinimized(true);
         setShowTooltip(false);
@@ -44,11 +102,9 @@ const Chatbot = () => {
     const nextState = !isOpen;
     setIsOpen(nextState);
     
-    // If opening, ensure it's not minimized
     if (nextState) {
       setIsMinimized(false);
     } else {
-      // If closing, set it to minimized (peek) state on mobile
       if (window.innerWidth < 768) {
         setIsMinimized(true);
       }
@@ -59,7 +115,7 @@ const Chatbot = () => {
 
   const handleSend = async (e) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || dailyLimitReached) return;
 
     const userMessage = input.trim();
     setInput('');
@@ -83,7 +139,6 @@ const Chatbot = () => {
       // Add an empty model message that we'll stream into
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
 
-      // Build the full URL for fetch (handles both dev proxy and production)
       const streamUrl = SummaryApi.chatMessageStream.url;
       const accessToken = localStorage.getItem('accessToken');
 
@@ -96,8 +151,41 @@ const Chatbot = () => {
         body: JSON.stringify({ message: userMessage, history }),
       });
 
+      // ── Handle 429 Rate-Limit Response ──
+      if (res.status === 429) {
+        const errorData = await res.json().catch(() => ({}));
+        const friendlyMsg = errorData.message || "Take a break, rider! You've sent too many messages.";
+        const limitType = errorData.limitType;
+
+        // Show the server's friendly message in the chat
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.role === 'model' && last.text === '') {
+            updated[updated.length - 1] = { ...last, text: friendlyMsg };
+          } else {
+            updated.push({ role: 'model', text: friendlyMsg });
+          }
+          return updated;
+        });
+
+        // If it's a daily limit, lock the input
+        if (limitType === 'daily') {
+          setDailyLimitReached(true);
+        }
+
+        setIsLoading(false);
+        return;
+      }
+
       if (!res.ok) {
         throw new Error(`Stream failed: ${res.status}`);
+      }
+
+      // ── Count this successful message against the daily budget ──
+      const newCount = incrementDailyCount();
+      if (newCount >= DAILY_LIMIT) {
+        setDailyLimitReached(true);
       }
 
       const reader = res.body.getReader();
@@ -110,40 +198,57 @@ const Chatbot = () => {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep incomplete line in buffer
+        buffer = lines.pop();
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
+          
+          let payload;
           try {
-            const payload = JSON.parse(line.slice(6));
+            payload = JSON.parse(line.slice(6));
+          } catch (e) {
+            continue; // Skip malformed JSON
+          }
 
-            if (payload.error) {
-              toast.error("Kiel hit a snag: " + payload.error);
-              break;
-            }
+          if (payload.error) {
+            console.error("[Developer Console] Kiel hit a snag via payload: ", payload.error);
+            // Instead of just throwing (which was being caught and ignored by an inner catch nearby),
+            // we specifically handle the error state here to show it in the UI.
+            setMessages(prev => {
+              const updated = [...prev];
+              const last = updated[updated.length - 1];
+              const errMsg = "Sorry, I hit a pothole! Try sending that again.";
+              if (last && last.role === 'model' && last.text === '') {
+                updated[updated.length - 1] = { ...last, text: errMsg };
+              } else {
+                updated.push({ role: 'model', text: errMsg });
+              }
+              return updated;
+            });
+            setIsLoading(false);
+            return; // Terminate this stream processing
+          }
 
-            if (payload.done) break;
+          if (payload.done) break;
 
-            if (payload.text) {
-              // Append chunk to the last (model) message
-              setMessages(prev => {
-                const updated = [...prev];
-                const last = updated[updated.length - 1];
+          if (payload.text) {
+            setMessages(prev => {
+              const updated = [...prev];
+              const last = updated[updated.length - 1];
+              if (last && last.role === 'model') {
                 updated[updated.length - 1] = { ...last, text: last.text + payload.text };
-                return updated;
-              });
-            }
-          } catch { /* skip malformed JSON lines */ }
+              }
+              return updated;
+            });
+          }
         }
       }
 
     } catch (error) {
-      console.error("Chatbot stream error:", error);
-      toast.error("An error occurred while talking to Kiel.");
+      console.error("[Developer Console] Chatbot stream error:", error);
       setMessages(prev => {
         const updated = [...prev];
         const last = updated[updated.length - 1];
-        // If the last message is an empty model message from the stream attempt, replace it
         if (last && last.role === 'model' && last.text === '') {
           updated[updated.length - 1] = { ...last, text: "Sorry, I hit a pothole! Try sending that again." };
         } else {
@@ -156,15 +261,67 @@ const Chatbot = () => {
     }
   };
 
+  const extractProductJSON = (text) => {
+    if (!text) return { cleanText: "", cards: [] };
+    
+    // Non-greedy match for {"ui": "product_card", ...}
+    const regex = /\{[\s\S]*?"ui"\s*:\s*"product_card"[\s\S]*?\}/g;
+    const matches = text.match(regex);
+    let cards = [];
+    let cleanText = text;
+
+    if (matches) {
+      matches.forEach(match => {
+        try {
+          const parsed = JSON.parse(match);
+          if (parsed.ui === "product_card") {
+            cards.push(parsed);
+          }
+          cleanText = cleanText.replace(match, '');
+        } catch (e) {
+          // Keep looking if malformed matching part
+        }
+      });
+    }
+
+    // Hide partial JSON stream fragments
+    const partialMatch = cleanText.match(/\{"ui"\s*:\s*"product_card".*$/);
+    if (partialMatch) {
+       cleanText = cleanText.replace(partialMatch[0], '');
+    }
+
+    return { cleanText: cleanText.trim(), cards };
+  };
+
   const formatMessage = (text) => {
     if (!text) return "";
     
-    // Split the text into parts to handle markdown-style bolding (**bold**)
-    const parts = text.split(/(\*\*.*?\*\*|__.*?__)/g);
+    // Split the text into parts to handle markdown-style bolding (**bold**) and links [Text](url)
+    const parts = text.split(/(\*\*.*?\*\*|__.*?__|\[.*?\]\(.*?\))/g);
     
     return parts.map((part, index) => {
       if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) {
         return <strong key={index} className="font-extrabold text-[#8B2222] italic">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
+        const titleMatch = part.match(/\[(.*?)\]/);
+        const urlMatch = part.match(/\((.*?)\)/);
+        if (titleMatch && urlMatch) {
+          return (
+            <Link 
+              key={index} 
+              to={urlMatch[1]} 
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  toggleChat();
+                }
+              }}
+              className="text-brand-primary underline font-bold hover:text-brand-primary-dark transition-colors"
+            >
+              {titleMatch[1]}
+            </Link>
+          );
+        }
       }
       return part;
     });
@@ -257,26 +414,49 @@ const Chatbot = () => {
             // Don't render an empty model bubble — the typing dots handle that state
             if (msg.role === 'model' && !msg.text) return null;
 
+            const { cleanText, cards } = msg.role === 'model' ? extractProductJSON(msg.text) : { cleanText: msg.text, cards: [] };
+
             return (
               <div 
                 key={index} 
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full items-end gap-2`}
+                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} w-full gap-1`}
               >
-                {msg.role === 'model' && (
-                   <div className="w-6 h-6 rounded-full bg-brand-primary/10 overflow-hidden flex-shrink-0 mb-1 border border-brand-primary/20">
-                      <img src={defaultAvatar} alt="K" className="w-full h-full object-cover opacity-70" />
-                   </div>
-                )}
-                <div 
-                  className={`max-w-[85%] rounded-[20px] px-4 py-3 text-[14px] leading-relaxed shadow-sm transition-all animate-in fade-in slide-in-from-bottom-2 duration-300 ${
-                    msg.role === 'user' 
-                      ? 'bg-brand-secondary text-white rounded-br-none shadow-orange-500/20' 
-                      : 'bg-white text-brand-text border border-brand-primary/10 rounded-bl-none shadow-brand-primary/5 font-medium'
-                  }`}
-                  style={{ whiteSpace: 'pre-wrap' }}
-                >
-                  {formatMessage(msg.text)}
+                <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full items-end gap-2`}>
+                  {msg.role === 'model' && (
+                     <div className="w-6 h-6 rounded-full bg-brand-primary/10 overflow-hidden flex-shrink-0 mb-1 border border-brand-primary/20">
+                        <img src={defaultAvatar} alt="K" className="w-full h-full object-cover opacity-70" />
+                     </div>
+                  )}
+                  {cleanText && (
+                    <div 
+                      className={`max-w-[85%] rounded-[20px] px-4 py-3 text-[14px] leading-relaxed shadow-sm transition-all animate-in fade-in slide-in-from-bottom-2 duration-300 ${
+                        msg.role === 'user' 
+                          ? 'bg-brand-secondary text-white rounded-br-none shadow-orange-500/20' 
+                          : 'bg-white text-brand-text border border-brand-primary/10 rounded-bl-none shadow-brand-primary/5 font-medium'
+                      }`}
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    >
+                      {formatMessage(cleanText)}
+                    </div>
+                  )}
                 </div>
+                {cards.length > 0 && msg.role === 'model' && (
+                  <div className="flex flex-row overflow-x-auto no-scrollbar gap-3 ml-8 pb-1">
+                    {cards.map((card, i) => (
+                      <ChatProductCard 
+                        key={i} 
+                        id={card.id} 
+                        slug={card.slug} 
+                        name={card.name}
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            toggleChat();
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -297,31 +477,46 @@ const Chatbot = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* Input Area or CTA */}
         <div className="p-4 bg-white border-t border-brand-primary/5">
-          <form onSubmit={handleSend} className="flex gap-3 relative">
-            <div className="flex-1 relative group">
-              <input 
-                type="text" 
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Message your pit crew..."
-                className="w-full bg-brand-cream/50 text-brand-text rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner border border-transparent focus:border-brand-primary/10"
-                disabled={isLoading}
-              />
+          {dailyLimitReached ? (
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={() => {
+                  toggleChat();
+                  navigate('/');
+                  window.scrollTo(0, 0);
+                }}
+                className="w-full bg-brand-primary text-white font-bold py-3.5 rounded-2xl hover:bg-brand-primary-dark transition-colors shadow-md"
+              >
+                View our Helmets
+              </button>
             </div>
-            <button 
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className={`p-3.5 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                !input.trim() || isLoading 
-                  ? 'bg-brand-cream text-brand-text/30 border border-brand-primary/5' 
-                  : 'bg-brand-primary text-white hover:bg-brand-primary-dark shadow-[0_4px_12px_-2px_rgba(139,34,34,0.3)] hover:scale-105 active:scale-95'
-              }`}
-            >
-              <IoMdSend size={20} className={input.trim() && !isLoading ? 'transform translate-x-0.5' : ''} />
-            </button>
-          </form>
+          ) : (
+            <form onSubmit={handleSend} className="flex gap-3 relative">
+              <div className="flex-1 relative group">
+                <input 
+                  type="text" 
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Message your pit crew..."
+                  className="w-full bg-brand-cream/50 text-brand-text rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner border border-transparent focus:border-brand-primary/10"
+                  disabled={isLoading}
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className={`p-3.5 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                  !input.trim() || isLoading 
+                    ? 'bg-brand-cream text-brand-text/30 border border-brand-primary/5' 
+                    : 'bg-brand-primary text-white hover:bg-brand-primary-dark shadow-[0_4px_12px_-2px_rgba(139,34,34,0.3)] hover:scale-105 active:scale-95'
+                }`}
+              >
+                <IoMdSend size={20} className={input.trim() && !isLoading ? 'transform translate-x-0.5' : ''} />
+              </button>
+            </form>
+          )}
           <div className="mt-2 text-center">
             <p className="text-[10px] text-brand-text/40 font-semibold tracking-wide uppercase">Powered by AI</p>
           </div>

@@ -676,11 +676,13 @@ export async function refreshToken(request, response) {
 
         const verifyToken = await jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
 
-        if (!verifyToken) ({
-            message: "Token expired",
-            error: true,
-            success: false
-        });
+        if (!verifyToken) {
+            return response.status(401).json({
+                message: "Token expired",
+                error: true,
+                success: false
+            });
+        }
 
         console.log("verifyToken", verifyToken);
         const userId = verifyToken?._id;
@@ -705,8 +707,8 @@ export async function refreshToken(request, response) {
         });
 
     } catch (error) {
-        return response.status(500).json({
-            message: error.message || error,
+        return response.status(401).json({
+            message: error.message || "Invalid or expired token",
             error: true,
             success: false
         });
@@ -720,6 +722,14 @@ export async function userDetails(request, response) {
         const user = await UserModel.findById(userId)
             .select('-password -refresh_token')
             .populate('shopping_cart.productId')
+
+        if (!user) {
+            return response.status(401).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
 
         return response.json({
             message: 'user details',
