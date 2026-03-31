@@ -47,15 +47,14 @@ import { getPublicIdFromUrl } from "../utils/uploadImageCloudinary.js"
 
 export const GetCategoryController = async(request, response) =>{
     try {
-        
-        const data = await CategoryModel.find()
-            return response.json({
-                data : data,
-                error: false,
-                success : true  
-            })
-        
+        const data = await CategoryModel.find().sort({ createdAt: -1 });
+        return response.json({
+            data : data,
+            error: false,
+            success : true  
+        })
     } catch (error) {
+        console.error("GetCategory Error:", error);
         return response.status(500).json({
             message : error.message || error,
             error : true,

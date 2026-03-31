@@ -29,14 +29,30 @@ app.use(cors({
 // Stripe Webhook (Keep this above express.json)
 app.post('/api/order/webhook', express.raw({ type: 'application/json' }), webhookStripe);
 
+const PORT = process.env.PORT || 8000
+
+// Middleware to ensure database connection is ready for any incoming request
+// This prevents 500 errors on cold starts (like Vercel or local nodemon restarts)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error("Database Connection Middleware Error:", error);
+        res.status(503).json({
+            message: "Service temporarily unavailable: Database connection failed",
+            error: true,
+            success: false
+        });
+    }
+});
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan("dev"))
 app.use(helmet({
     crossOriginResourcePolicy: false
 }))
-
-const PORT = process.env.PORT || 8000
 
 // Add back the /api prefix because Vercel rewrites don't strip the path,
 // and we need it to match both locally (via Vite proxy) and in production.
@@ -58,13 +74,16 @@ app.get("/api/api-status", (req, res) => {
 });
 
 // Database & Export
-// We call connectDB but don't 'await' it here so the server starts faster
-connectDB();
-
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log('Local Server running on', PORT);
-    });
-}
+// We await connectDB before starting the local server to avoid 500 errors on first load.
+// This is also handled by the middleware above for every request.
+connectDB().then(() => {
+    if (process.env.NODE_ENV !== 'production') {
+        app.listen(PORT, () => {
+            console.log(`Local Server is now running on Port ${PORT} and Database is connected`);
+        });
+    }
+}).catch(err => {
+    console.error("Initial database connection failed during startup", err);
+});
 
 export default app;
