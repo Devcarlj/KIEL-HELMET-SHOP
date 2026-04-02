@@ -27,16 +27,16 @@ const MODELS_LADDER = [
 // Sending the wrong shape causes a 400 Bad Request — this prevents that.
 const getGenerationConfig = (modelName) => {
     const base = {
-        temperature: 0.5,
-        maxOutputTokens: 1024, // Increased from 500 to prevent message cutoff (JSON takes extra tokens)
+        temperature: 0.7, // Slightly higher for more natural but still fast responses
+        maxOutputTokens: 800, // Reduced slightly to encourage brevity and faster completion
     };
 
     if (modelName.startsWith("gemini-3")) {
-        // Gemini 3.x: uses string levels ("low", "minimal", "high")
-        base.thinkingConfig = { thinkingLevel: "low" };
+        // Gemini 3.x: "minimal" is faster than "low"
+        base.thinkingConfig = { thinkingLevel: "minimal" };
     } else if (modelName.startsWith("gemini-2.5")) {
-        // Gemini 2.5: uses numeric budget (0 = off, 1024 = light thinking)
-        base.thinkingConfig = { thinkingBudget: 1024 };
+        // Gemini 2.5: 0 budget = fastest response (disables internal reasoning step)
+        base.thinkingConfig = { thinkingBudget: 0 };
     }
     // Gemini 2.0 and 1.5 do NOT support thinkingConfig — omit it entirely
 
@@ -71,18 +71,16 @@ const getProductData = async () => {
         return productCache.data;
     }
 
-    // Limit to Top 20 in-stock products — prevents the system instruction
-    // from growing too large as the catalog scales (keeps prefill fast)
-    const products = await ProductModel.find({ public: true })
+    // Optimized query: only fetch absolute necessary fields, use lean()
+    const products = await ProductModel.find({ public: true, stock: { $gt: 0 } })
         .select("name price stock discount _id slug")
-        .sort({ stock: -1, discount: -1 }) // Prioritise in-stock & discounted items
-        .limit(20)
-        .lean(); // .lean() returns plain JS objects — faster
+        .sort({ discount: -1, price: 1 }) // Focus on deals and entry-level prices first
+        .limit(15) // Reduced from 20 to 15 to slightly reduce prompt injection overhead
+        .lean();
 
     const productString = products.map(p => {
         const dp = p.discount > 0 ? Math.round(p.price * (1 - p.discount / 100)) : p.price;
-        const price = p.discount > 0 ? `₱${dp} (was ₱${p.price}, -${p.discount}%)` : `₱${dp}`;
-        return `- ${p.name}: ${price} | ${p.stock > 0 ? 'In Stock' : 'Sold Out'} (ID: ${p._id}, Slug: ${p.slug || p._id})`;
+        return `${p.name}: ₱${dp}${p.discount > 0 ? `(-${p.discount}%)` : ""} | ID: ${p._id} | SLUG: ${p.slug || p._id}`;
     }).join("\n");
 
     productCache = { data: productString, timestamp: now };
@@ -90,24 +88,17 @@ const getProductData = async () => {
 };
 
 // ─── Optimized System Instruction (compact, bullet-point format) ───
-const buildSystemInstruction = (productDataString) => `Role: You are "Kiel," the AI Pit Crew for Kiel Helmet Shop.
-Tone: Biker-to-biker, helpful, and high-energy. Keep all responses under 3 sentences and 100 words.
+const buildSystemInstruction = (productDataString) => `Role: "Kiel", AI Pit Crew for Kiel Helmet Shop.
+Tone: Biker-to-biker, high-energy. Max 2-3 sentences.
+Rules: 
+1. Only recommend/use JSON if user asks for advice or specific helmet types.
+2. If recommending, append "[DATA]" followed by the JSON packet at the absolute end.
+   Format: [DATA]{"ui": "product_card", "id": "ID", "slug": "SLUG", "name": "NAME"}
+3. Use ONLY provided products. If missing, suggest generic helmet type.
+4. Deep link: [Name](/product/slug).
+5. Nudges: Message #3: "Check cart?", #5: "Ready to checkout?".
 
-CRITICAL OPERATIONAL RULES:
-
-Structured JSON Output: Whenever you recommend or mention a specific helmet from the provided context, you MUST append a JSON packet at the very end of your message.
-
-Format: {"ui": "product_card", "id": "ID_HERE", "slug": "SLUG_HERE", "name": "PRODUCT_NAME_HERE"}
-
-No Hallucinations: Use ONLY the products provided in the context string. If no match exists, say "I don't have that in the garage right now" and suggest the closest alternative.
-
-Conversion Nudges: 
-- After 3 messages, suggest: "Want to see what's in your cart?"
-- After 5 messages, suggest: "Ready to check out and hit the road?"
-
-Deep Linking: When mentioning a product in text, use the format: [Product Name](/product/slug).
-
-Product Context: 
+Context: 
 ${productDataString}`;
 
 // ─── Helper: Create a chat session using the model ladder ─────────────────────

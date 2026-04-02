@@ -20,6 +20,7 @@ import moneyIcon from '../assets/money.png'
 import assortmentIcon from '../assets/assortment.png'
 
 import { getOptimizedImageUrl } from '../utils/OptimizeImage'
+import { DisplayProductPageSkeleton } from '../components/Skeletons'
 
 const DisplayProductPage = () => {
   const { productId } = useParams()
@@ -431,23 +432,7 @@ const DisplayProductPage = () => {
   }
 
   if (loading || !product) {
-    return (
-      <section className='bg-white min-h-[78vh]'>
-        <div className='w-full px-4 md:px-10 lg:px-16 py-6 md:py-10'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16'>
-            {/* Image Skeleton */}
-            <div className='aspect-square w-full bg-slate-100 rounded-[1.5rem] md:rounded-[2.5rem] animate-pulse' />
-            {/* Details Skeleton */}
-            <div className='space-y-4 md:space-y-6'>
-              <div className='h-8 md:h-12 w-3/4 bg-slate-100 rounded-xl animate-pulse' />
-              <div className='h-4 w-1/4 bg-slate-100 rounded-md animate-pulse' />
-              <div className='h-24 w-full bg-slate-100 rounded-[2rem] animate-pulse' />
-              <div className='h-40 w-full bg-slate-100 rounded-xl animate-pulse hidden md:block' />
-            </div>
-          </div>
-        </div>
-      </section>
-    )
+    return <DisplayProductPageSkeleton />
   }
 
   return (

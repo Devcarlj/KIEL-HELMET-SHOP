@@ -4,6 +4,7 @@ import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import CardProduct from '../components/CardProduct'
 import NoDataImage from '../assets/nothinghereyet.png'
+import { ProductCardSkeleton } from '../components/Skeletons'
 
 const SearchPage = () => {
   const location = useLocation()
@@ -104,12 +105,7 @@ const SearchPage = () => {
         {/* Results grid */}
         {loading ? (
           <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5'>
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className='min-w-[150px] md:min-w-[200px] aspect-[1/1.6] bg-slate-100 animate-pulse rounded-[2.5rem] border border-slate-100'
-              />
-            ))}
+            {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
         ) : hasResults ? (
           <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5'>

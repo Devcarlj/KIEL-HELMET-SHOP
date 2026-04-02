@@ -48,9 +48,10 @@ Axios.interceptors.response.use(
 const refreshAccessToken = async (refreshToken) => {
     try {
         const response = await axios({
-        method: SummaryApi.refreshToken.method, // Forces 'post'
-        url: baseURL + SummaryApi.refreshToken.url, // Ensures absolute path
-        headers: {
+            method: SummaryApi.refreshToken.method, // Forces 'post'
+            url: baseURL + SummaryApi.refreshToken.url, // Ensures absolute path
+            withCredentials: true,
+            headers: {
                 Authorization: `Bearer ${refreshToken}`
             }
         });

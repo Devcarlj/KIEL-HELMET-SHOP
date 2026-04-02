@@ -79,6 +79,11 @@ const productSchema = new mongoose.Schema({
     timestamps: true
 })
 
+// Performance indexes for general queries and chatbot context retrieval
+productSchema.index({ public: 1, stock: -1 });
+productSchema.index({ discount: -1, price: 1 });
+productSchema.index({ name: 'text', description: 'text' }); // Also add text search for potential future improvements
+
 const ProductModel = mongoose.model('product', productSchema)
 
 export default ProductModel

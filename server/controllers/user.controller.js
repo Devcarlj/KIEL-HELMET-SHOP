@@ -167,14 +167,15 @@ export async function loginController(request, response) {
         const updateUser = await UserModel.findByIdAndUpdate(user._id, {
             last_login_date: new Date()
         })
-        const cookiesOption = {
+        const cookieOptions = {
             httpOnly: true,
             secure: true,
-            sameSite: "None"
+            sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         }
 
-        response.cookie('accessToken', accessToken, cookiesOption);
-        response.cookie('refreshToken', refreshToken, cookiesOption);
+        response.cookie('accessToken', accessToken, cookieOptions);
+        response.cookie('refreshToken', refreshToken, cookieOptions);
 
         return response.json({
             message: "Login successfully",
@@ -202,14 +203,14 @@ export async function logoutController(request, response) {
 
         const userid = request.userId //middleware
 
-        const cookiesOption = {
+        const cookieOptions = {
             httpOnly: true,
             secure: true,
             sameSite: "None"
         }
 
-        response.clearCookie("accessToken", cookiesOption);
-        response.clearCookie("refreshToken", cookiesOption);
+        response.clearCookie("accessToken", cookieOptions);
+        response.clearCookie("refreshToken", cookieOptions);
 
         const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
             refresh_token: ""
@@ -685,17 +686,18 @@ export async function refreshToken(request, response) {
         }
 
         console.log("verifyToken", verifyToken);
-        const userId = verifyToken?._id;
+        const userId = verifyToken?.id;
 
         const newAccessToken = await generatedAccessToken(userId);
 
-        const cookiesOption = {
+        const cookieOptions = {
             httpOnly: true,
             secure: true,
-            sameSite: "None"
+            sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         }
 
-        response.cookie('accessToken', newAccessToken, cookiesOption);
+        response.cookie('accessToken', newAccessToken, cookieOptions);
 
         return response.json({
             message: "New access token generated",

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import SummaryApi from '../common/SummaryApi'
 import CardProduct from '../components/CardProduct'
 import useSWR from 'swr'
+import { ProductCardSkeleton } from '../components/Skeletons'
 
 const ProductListPage = () => {
   const { categoryId } = useParams()
@@ -151,12 +152,7 @@ const ProductListPage = () => {
           <div className='flex-1 min-w-0'>
             {loading ? (
               <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5'>
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className='min-w-[150px] md:min-w-[200px] aspect-[1/1.6] bg-slate-100 animate-pulse rounded-[2.5rem] border border-slate-100'
-                  />
-                ))}
+                {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
               </div>
             ) : visibleProducts.length === 0 ? (
               <div className='flex flex-col items-center justify-start pt-16 md:pt-24 pb-32 text-center'>

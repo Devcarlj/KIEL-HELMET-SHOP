@@ -28,7 +28,7 @@ const ChatProductCard = ({ id, slug, name, onClick }) => {
 };
 
 // ─── LocalStorage Daily Counter Helpers ──────────────────────────────────────
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = 10;
 const LS_DATE_KEY  = 'kiel_chat_date';
 const LS_COUNT_KEY = 'kiel_chat_count';
 
@@ -92,7 +92,7 @@ const Chatbot = () => {
       const timer = setTimeout(() => {
         setIsMinimized(true);
         setShowTooltip(false);
-      }, 6000);
+      }, 3000);
       
       return () => clearTimeout(timer);
     }
@@ -263,34 +263,35 @@ const Chatbot = () => {
 
   const extractProductJSON = (text) => {
     if (!text) return { cleanText: "", cards: [] };
+
+    // ── Simple, robust split using our new [DATA] marker ──
+    // This allows us to hide the JSON parts instantly as they arrive.
+    const sections = text.split('[DATA]');
+    const cleanText = sections[0].trim();
+    const potentialJSONs = sections.slice(1);
     
-    // Non-greedy match for {"ui": "product_card", ...}
-    const regex = /\{[\s\S]*?"ui"\s*:\s*"product_card"[\s\S]*?\}/g;
-    const matches = text.match(regex);
     let cards = [];
-    let cleanText = text;
-
-    if (matches) {
-      matches.forEach(match => {
-        try {
-          const parsed = JSON.parse(match);
+    potentialJSONs.forEach(raw => {
+      try {
+        // Attempt to parse only if the JSON seems complete (ends with })
+        // If not, we just ignore it knowing it will remain "hidden" from cleanText
+        const lastBrace = raw.lastIndexOf('}');
+        if (lastBrace !== -1) {
+          const jsonString = raw.substring(0, lastBrace + 1);
+          const parsed = JSON.parse(jsonString);
           if (parsed.ui === "product_card") {
-            cards.push(parsed);
+            // Avoid duplicate cards if the AI repeats a recommendation
+            if (!cards.find(c => c.id === parsed.id)) {
+              cards.push(parsed);
+            }
           }
-          cleanText = cleanText.replace(match, '');
-        } catch (e) {
-          // Keep looking if malformed matching part
         }
-      });
-    }
+      } catch (e) {
+        // Partial or malformed JSON during streaming is skipped silently
+      }
+    });
 
-    // Hide partial JSON stream fragments
-    const partialMatch = cleanText.match(/\{"ui"\s*:\s*"product_card".*$/);
-    if (partialMatch) {
-       cleanText = cleanText.replace(partialMatch[0], '');
-    }
-
-    return { cleanText: cleanText.trim(), cards };
+    return { cleanText, cards };
   };
 
   const formatMessage = (text) => {
@@ -336,7 +337,7 @@ const Chatbot = () => {
         }`}
       >
         <div className="relative">
-          {isMinimized && window.innerWidth < 768 ? "Slide me if you have a question! 🏍️" : "Need help? Just tap! 🏎️"}
+          Need help? Just tap!
           <div className="absolute -bottom-4 right-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-brand-cream"></div>
         </div>
       </div>
