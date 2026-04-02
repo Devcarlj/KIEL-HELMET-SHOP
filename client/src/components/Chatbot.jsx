@@ -1,31 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { IoMdClose, IoMdSend } from "react-icons/io";
 import defaultAvatar from '../assets/default_user_profiles.png';
 import SummaryApi from '../common/SummaryApi';
 import toast from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
-
-const ChatProductCard = ({ id, slug, name, onClick }) => {
-  return (
-    <Link 
-      to={`/product/${id}`} // Linking by ID is safer based on how CardProduct works
-      onClick={onClick}
-      className="bg-white border text-left border-brand-primary/20 p-3 rounded-2xl shadow-sm flex items-center justify-between hover:bg-brand-cream/30 hover:border-brand-primary/40 transition-all min-w-[200px] w-full max-w-[240px] mt-1 group shrink-0"
-    >
-      <div className="flex flex-col pr-2">
-        <span className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors line-clamp-1">
-          {name ? `View ${name}` : "View Product"}
-        </span>
-        <span className="text-[10px] text-brand-primary/70 uppercase font-black tracking-wider">Tap to check details</span>
-      </div>
-      <div className="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shadow-sm group-hover:bg-brand-primary group-hover:text-white transition-colors">
-        <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
-           <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-        </svg>
-      </div>
-    </Link>
-  );
-};
+import Axios from '../utils/Axios';
+import { getOptimizedImageUrl } from '../utils/OptimizeImage';
 
 // ─── LocalStorage Daily Counter Helpers ──────────────────────────────────────
 const DAILY_LIMIT = 10;
@@ -56,10 +37,16 @@ const incrementDailyCount = () => {
 
 const Chatbot = () => {
   const navigate = useNavigate();
+  const user = useSelector(state => state.user);
+  const isAdmin = user?.role === "ADMIN";
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
-  const [dailyLimitReached, setDailyLimitReached] = useState(() => getDailyCount() >= DAILY_LIMIT);
+  
+  // Admins are never limited locally
+  const [dailyLimitReached, setDailyLimitReached] = useState(() => !isAdmin && getDailyCount() >= DAILY_LIMIT);
+  
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -68,7 +55,71 @@ const Chatbot = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [preloadedProducts, setPreloadedProducts] = useState({});
+  const preloadedIdsRef = useRef(new Set());
   const messagesEndRef = useRef(null);
+
+  /** ── Feature 1: Background Data Extractor ──
+   *  Splits AI response into clean text and product cards using the [DATA] marker.
+   */
+  const extractProductJSON = (text) => {
+    if (!text) return { cleanText: "", cards: [] };
+
+    // Standard split on the raw [DATA] marker
+    const sections = text.split('[DATA]');
+    const cleanText = sections[0].trim();
+    const potentialJSONs = sections.slice(1);
+    
+    let cards = [];
+    potentialJSONs.forEach(raw => {
+      try {
+        const lastBrace = raw.lastIndexOf('}');
+        if (lastBrace !== -1) {
+          const jsonString = raw.substring(0, lastBrace + 1);
+          const parsed = JSON.parse(jsonString);
+          if (parsed.ui === "product_card") {
+            const cardId = parsed.id || parsed._id;
+            if (cardId && !cards.find(c => c.id === cardId)) {
+              cards.push({ ...parsed, id: cardId });
+            }
+          }
+        }
+      } catch (e) {
+        // Silent fail for malformed JSON during stream
+      }
+    });
+
+    return { cleanText, cards };
+  };
+
+  /** ── Feature 2: High-Performance Product Card ── 
+   *  Accepts preloadedData to eliminate loading states on the next page.
+   */
+  const ChatProductCard = ({ id, name, onClick, preloadedData }) => {
+    // Ensure the ID is clean (remove any slashes AI might have added)
+    const cleanId = id?.toString().replace(/^\//, '');
+    
+    return (
+      <Link 
+        to={`/product/${cleanId}`} 
+        state={{ product: preloadedData }}
+        onClick={onClick}
+        className="bg-white border text-left border-brand-primary/20 p-3 rounded-2xl shadow-sm flex items-center justify-between hover:bg-brand-cream/30 hover:border-brand-primary/40 transition-all min-w-[200px] w-full max-w-[240px] mt-1 group shrink-0"
+      >
+        <div className="flex flex-col pr-2">
+          <span className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors line-clamp-1">
+            {name ? `View ${name}` : "View Product"}
+          </span>
+          <span className="text-[10px] text-brand-primary/70 uppercase font-black tracking-wider">Tap to check details</span>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center shadow-sm group-hover:bg-brand-primary group-hover:text-white transition-colors">
+          <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
+             <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </div>
+      </Link>
+    );
+  };
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -81,10 +132,10 @@ const Chatbot = () => {
 
   // Re-check the daily limit every time the chat opens (handles midnight reset)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isAdmin) {
       setDailyLimitReached(getDailyCount() >= DAILY_LIMIT);
     }
-  }, [isOpen]);
+  }, [isOpen, isAdmin]);
 
   // Initial animation: show, wait, then peek
   useEffect(() => {
@@ -97,6 +148,60 @@ const Chatbot = () => {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  /** ── Feature 3: Smart Background Preloading Engine ──
+   *  Automatically fetches full details of products the AI mentions.
+   */
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== 'model' || !lastMessage.text) return;
+    
+    // 1. Check for products in the hidden [DATA] blocks
+    const { cards } = extractProductJSON(lastMessage.text);
+    
+    // 2. Also check for regular markdown links in the message
+    const linkRegex = /\[.*?\]\((.*?)\)/g;
+    const rawIdsInText = [...lastMessage.text.matchAll(linkRegex)].map(m => m[1]);
+    
+    // Merge both types, cleanup slashes, and filter unique IDs to preload
+    const allIds = new Set([
+        ...cards.map(c => c.id?.toString()),
+        ...rawIdsInText
+    ]);
+
+    allIds.forEach(id => {
+        if (!id) return;
+        // Clean ID for lookup
+        const cleanId = id.toString().trim().replace(/^\//, '').replace('product/', '');
+        
+        if (cleanId && !preloadedIdsRef.current.has(cleanId)) {
+            preloadedIdsRef.current.add(cleanId);
+            fetchAndPreloadProduct(cleanId);
+        }
+    });
+  }, [messages]);
+
+  const fetchAndPreloadProduct = async (id) => {
+    try {
+      const response = await Axios({
+        ...SummaryApi.getProduct,
+        params: { _id: id }
+      });
+      
+      if (response.data.success && response.data.data.length > 0) {
+        const fullProduct = response.data.data[0];
+        setPreloadedProducts(prev => ({ ...prev, [id]: fullProduct }));
+        
+        // Background image cache - Browser handles this in background
+        if (fullProduct.image?.[0]) {
+          new Image().src = getOptimizedImageUrl(fullProduct.image[0], { width: 800 });
+        }
+      }
+    } catch (error) {
+      // Fail silently in background
+      preloadedIdsRef.current.delete(id);
+    }
+  };
 
   const toggleChat = () => {
     const nextState = !isOpen;
@@ -182,10 +287,12 @@ const Chatbot = () => {
         throw new Error(`Stream failed: ${res.status}`);
       }
 
-      // ── Count this successful message against the daily budget ──
-      const newCount = incrementDailyCount();
-      if (newCount >= DAILY_LIMIT) {
-        setDailyLimitReached(true);
+      // ── Count this successful message against the daily budget (except for Admins) ──
+      if (!isAdmin) {
+        const newCount = incrementDailyCount();
+        if (newCount >= DAILY_LIMIT) {
+          setDailyLimitReached(true);
+        }
       }
 
       const reader = res.body.getReader();
@@ -261,57 +368,35 @@ const Chatbot = () => {
     }
   };
 
-  const extractProductJSON = (text) => {
-    if (!text) return { cleanText: "", cards: [] };
-
-    // ── Simple, robust split using our new [DATA] marker ──
-    // This allows us to hide the JSON parts instantly as they arrive.
-    const sections = text.split('[DATA]');
-    const cleanText = sections[0].trim();
-    const potentialJSONs = sections.slice(1);
-    
-    let cards = [];
-    potentialJSONs.forEach(raw => {
-      try {
-        // Attempt to parse only if the JSON seems complete (ends with })
-        // If not, we just ignore it knowing it will remain "hidden" from cleanText
-        const lastBrace = raw.lastIndexOf('}');
-        if (lastBrace !== -1) {
-          const jsonString = raw.substring(0, lastBrace + 1);
-          const parsed = JSON.parse(jsonString);
-          if (parsed.ui === "product_card") {
-            // Avoid duplicate cards if the AI repeats a recommendation
-            if (!cards.find(c => c.id === parsed.id)) {
-              cards.push(parsed);
-            }
-          }
-        }
-      } catch (e) {
-        // Partial or malformed JSON during streaming is skipped silently
-      }
-    });
-
-    return { cleanText, cards };
-  };
 
   const formatMessage = (text) => {
     if (!text) return "";
     
-    // Split the text into parts to handle markdown-style bolding (**bold**) and links [Text](url)
+    // Split text into parts keeping bold markers and markdown links
     const parts = text.split(/(\*\*.*?\*\*|__.*?__|\[.*?\]\(.*?\))/g);
     
     return parts.map((part, index) => {
+      // Handle Bold
       if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) {
         return <strong key={index} className="font-extrabold text-[#8B2222] italic">{part.slice(2, -2)}</strong>;
       }
+      
+      // Handle Markdown Links [Name](ID)
       if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
         const titleMatch = part.match(/\[(.*?)\]/);
         const urlMatch = part.match(/\((.*?)\)/);
         if (titleMatch && urlMatch) {
+          const rawUrl = urlMatch[1].trim();
+          
+          // Clean the ID for robust routing (/2020 -> /product/2020)
+          const cleanId = rawUrl.replace(/^\//, '').replace('product/', '');
+          const targetUrl = rawUrl.startsWith('http') ? rawUrl : `/product/${cleanId}`;
+          
           return (
             <Link 
               key={index} 
-              to={urlMatch[1]} 
+              to={targetUrl} 
+              state={{ product: preloadedProducts[cleanId] || null }}
               onClick={() => {
                 if (window.innerWidth < 768) {
                   toggleChat();
@@ -449,6 +534,7 @@ const Chatbot = () => {
                         id={card.id} 
                         slug={card.slug} 
                         name={card.name}
+                        preloadedData={preloadedProducts[card.id] || null}
                         onClick={() => {
                           if (window.innerWidth < 768) {
                             toggleChat();

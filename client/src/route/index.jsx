@@ -33,6 +33,8 @@ const AdminOrders = lazy(() => import('../pages/AdminOrders.jsx'));
 const OrderDetails = lazy(() => import('../pages/OrderDetails.jsx'));
 const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy.jsx'));
 const TermsOfService = lazy(() => import('../pages/TermsOfService.jsx'));
+const FavoritePage = lazy(() => import('../pages/FavoritePage.jsx'));
+
 
 // ─── Lazy-loaded layout components ───
 const Dashboard = lazy(() => import('../layouts/Dashboard.jsx'));
@@ -130,6 +132,11 @@ const router = createBrowserRouter([
             path: "address",
             element: <SuspenseWrap><Adress /></SuspenseWrap>
           },
+          {
+            path: "favorites",
+            element: <SuspenseWrap><FavoritePage /></SuspenseWrap>
+          },
+
           {
             path: "category",
             element: <SuspenseWrap><AdminPermission><CategoryPage /></AdminPermission></SuspenseWrap>

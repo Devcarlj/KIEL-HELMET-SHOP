@@ -204,6 +204,14 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
           Save Address
           <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/address' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
         </Link>
+        <Link
+          to="/dashboard/favorites"
+          onClick={handleLinkClick}
+          className={getLinkClass("/dashboard/favorites")}
+        >
+          My Favorites
+          <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/favorites' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+        </Link>
       </nav>
 
       <hr className='border-gray-100' />

@@ -8,7 +8,14 @@ import SummaryApi from '../common/SummaryApi.js'
 
 const Home = () => {
   const { data: categoriesData, isLoading: loading } = useSWR(SummaryApi.getCategory)
-  const categories = categoriesData?.success ? categoriesData.data : []
+  const rawCategories = categoriesData?.success ? categoriesData.data : []
+  const categories = [...rawCategories].sort((a, b) => {
+    const aIsHelmet = a.name.toLowerCase().includes('helmet')
+    const bIsHelmet = b.name.toLowerCase().includes('helmet')
+    if (aIsHelmet && !bIsHelmet) return -1
+    if (!aIsHelmet && bIsHelmet) return 1
+    return 0
+  })
 
   return (
     <section className="bg-brand-cream min-h-screen">
@@ -30,7 +37,7 @@ const Home = () => {
       <CategoryListing />
 
       {/* Product rows for each category */}
-      <div className='flex flex-col gap-4 md:gap-8 mb-16'>
+      <div className='flex flex-col gap-0 md:gap-0 mb-8'>
         {loading ? (
           [...Array(3)].map((_, i) => (
             <div key={i} className='container mx-auto px-4 mt-8'>

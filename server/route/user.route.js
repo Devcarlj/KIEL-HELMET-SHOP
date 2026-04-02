@@ -15,7 +15,9 @@ import {
     addAddressController,
     updateAddressController,
     deleteAddressController,
-    getAddressesController
+    getAddressesController,
+    getFavorites,
+    toggleFavorite
 } from '../controllers/user.controller.js';
 
 import auth from '../middleware/auth.js';
@@ -41,5 +43,9 @@ userRouter.post('/add-address', auth, addAddressController);
 userRouter.get('/get-address', auth, getAddressesController);
 userRouter.put('/update-address', auth, updateAddressController);
 userRouter.delete('/delete-address', auth, deleteAddressController);
+
+userRouter.post('/toggle-favorite', auth, toggleFavorite);
+userRouter.get('/get-favorites', auth, getFavorites);
+
 
 export default userRouter;

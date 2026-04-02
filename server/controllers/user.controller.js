@@ -724,6 +724,7 @@ export async function userDetails(request, response) {
         const user = await UserModel.findById(userId)
             .select('-password -refresh_token')
             .populate('shopping_cart.productId')
+            .populate('favorites')
 
         if (!user) {
             return response.status(401).json({
@@ -748,3 +749,88 @@ export async function userDetails(request, response) {
         })
     }
 }
+
+// toggle favorite
+export async function toggleFavorite(request, response) {
+    try {
+        const userId = request.userId;
+        const { productId } = request.body;
+
+        if (!productId) {
+            return response.status(400).json({
+                message: "Product ID is required",
+                error: true,
+                success: false
+            });
+        }
+
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return response.status(404).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
+
+        const isFavorite = user.favorites.includes(productId);
+
+        if (isFavorite) {
+            // Remove from favorites
+            user.favorites.pull(productId);
+            await user.save();
+            return response.json({
+                message: "Removed from favorites",
+                success: true,
+                error: false,
+                data: user.favorites
+            });
+        } else {
+            // Add to favorites
+            user.favorites.push(productId);
+            await user.save();
+            return response.json({
+                message: "Added to favorites",
+                success: true,
+                error: false,
+                data: user.favorites
+            });
+        }
+
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+// get favorites
+export async function getFavorites(request, response) {
+    try {
+        const userId = request.userId;
+        const user = await UserModel.findById(userId).populate('favorites');
+
+        if (!user) {
+            return response.status(404).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
+
+        return response.json({
+            message: "Favorites fetched successfully",
+            success: true,
+            error: false,
+            data: user.favorites
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}

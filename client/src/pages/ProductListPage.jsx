@@ -151,7 +151,7 @@ const ProductListPage = () => {
 
           <div className='flex-1 min-w-0'>
             {loading ? (
-              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5'>
+              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 md:gap-5'>
                 {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
               </div>
             ) : visibleProducts.length === 0 ? (
@@ -170,7 +170,7 @@ const ProductListPage = () => {
                 )}
               </div>
             ) : (
-              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5'>
+              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 md:gap-5'>
                 {visibleProducts.map(product => (
                   <CardProduct key={product._id} data={product} />
                 ))}

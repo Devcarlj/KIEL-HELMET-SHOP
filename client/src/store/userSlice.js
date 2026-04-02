@@ -14,6 +14,7 @@ const initialValue = {
     forgot_password_otp: "",
     forgot_password_expiry: "",
     role: "",
+    favorites: [],
     loading: true,
     isLoggedIn: false
 
@@ -43,6 +44,10 @@ const userSlice = createSlice({
             }
         },
 
+        setFavorites: (state, action) => {
+            state.favorites = action.payload
+        },
+
         logout: () => {
             return { ...initialValue, loading: false };
         }
@@ -51,7 +56,7 @@ const userSlice = createSlice({
 })
 
 
-export const { setUserDetails, logout, updateAvatar, deleteAddressAction, setLoading } = userSlice.actions
+export const { setUserDetails, logout, updateAvatar, deleteAddressAction, setLoading, setFavorites } = userSlice.actions
 
 
 export default userSlice.reducer

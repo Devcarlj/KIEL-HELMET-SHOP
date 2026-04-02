@@ -69,6 +69,11 @@ const productSchema = new mongoose.Schema({
     public: {
         type: Boolean,
         default: true
+    },
+
+    badges: {
+        type: Array,
+        default: []
     }
 
 

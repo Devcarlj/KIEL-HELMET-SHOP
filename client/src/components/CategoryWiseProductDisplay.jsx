@@ -23,8 +23,8 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
     if (!loading && data.length === 0) return null;
 
     return (
-        <section className='w-full px-4 md:px-10 lg:px-16 mt-8 md:mt-16 group/section'>
-            <div className='flex items-end justify-between mb-8 pb-2 border-b-2 border-slate-50'>
+        <section className='w-full px-4 md:px-10 lg:px-16 mt-4 md:mt-16 group/section'>
+            <div className='flex items-end justify-between mb-0 pb-2 border-b-2 border-slate-50'>
                 <div className='relative'>
                     <h3 className='text-xl md:text-3xl font-black text-slate-800 tracking-tight'>
                         {name}
@@ -40,7 +40,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
             <div className='relative group'>
                 <div
                     ref={containerRef}
-                    className='flex items-stretch gap-4 md:gap-7 overflow-x-auto no-scrollbar scroll-smooth py-6 px-1'
+                    className='flex items-stretch gap-4 md:gap-8 overflow-x-auto no-scrollbar scroll-smooth py-4 px-1'
                 >
                     {loading ? (
                         [...Array(6)].map((_, i) => (

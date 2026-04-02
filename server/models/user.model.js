@@ -103,6 +103,13 @@ const userSchema = new mongoose.Schema({
         default: "USER"
     },
 
+    favorites: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'product'
+        }
+    ],
+
 },
     {
         timestamps: true

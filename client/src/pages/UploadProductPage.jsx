@@ -25,7 +25,8 @@ const UploadProductPage = () => {
     discount: "",
     more_details: {},
     variations: [],
-    variationStocks: []
+    variationStocks: [],
+    badges: []
   })
 
   const [fieldName, setFieldName] = useState("")
@@ -34,6 +35,7 @@ const UploadProductPage = () => {
   const [variationName, setVariationName] = useState("")
   const [variationOptions, setVariationOptions] = useState("")
   const [openVariations, setOpenVariations] = useState(false)
+  const [badgeInput, setBadgeInput] = useState("")
 
   // Fetch all categories and subCategories
   useEffect(() => {
@@ -156,7 +158,8 @@ const UploadProductPage = () => {
           discount: data.discount,
           more_details: data.more_details,
           variations: data.variations,
-          variationStocks: data.variationStocks
+          variationStocks: data.variationStocks,
+          badges: data.badges
         }
       })
 
@@ -174,7 +177,8 @@ const UploadProductPage = () => {
           discount: "",
           more_details: {},
           variations: [],
-          variationStocks: []
+          variationStocks: [],
+          badges: []
         })
       } else {
         toast.error(response.data.message)
@@ -778,6 +782,65 @@ const UploadProductPage = () => {
                   )}
                 </>
               )}
+            </div>
+
+            {/* Product Badges Section */}
+            <div className='grid gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50/50'>
+              <div className='flex items-center justify-between w-full'>
+                <div className='flex items-center gap-2'>
+                  <h3 className='text-sm font-bold text-slate-700'>Product Badges</h3>
+                  <span className='text-[10px] uppercase tracking-wider text-slate-400 font-bold'>Labels</span>
+                </div>
+              </div>
+              
+              <div className='flex flex-wrap gap-2'>
+                {(data.badges || []).map((badge, index) => (
+                  <div key={index} className='flex items-center gap-1 bg-white px-2 py-1 border border-primary text-primary text-[10px] font-black rounded-md shadow-sm group'>
+                    {badge}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = data.badges.filter((_, i) => i !== index)
+                        setData(prev => ({ ...prev, badges: updated }))
+                      }}
+                      className='text-red-500 hover:text-red-700 ml-1'
+                    >
+                      <IoIosClose size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className='flex items-center gap-2'>
+                <input
+                  type="text"
+                  placeholder='Add new badge (e.g. Sale, New)'
+                  value={badgeInput}
+                  onChange={(e) => setBadgeInput(e.target.value)}
+                  className='flex-1 bg-white p-2.5 border border-slate-200 rounded-lg outline-none focus:border-cta-yellow text-sm'
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      if (badgeInput.trim()) {
+                        setData(prev => ({ ...prev, badges: [...(prev.badges || []), badgeInput.trim()] }))
+                        setBadgeInput("")
+                      }
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (badgeInput.trim()) {
+                      setData(prev => ({ ...prev, badges: [...(prev.badges || []), badgeInput.trim()] }))
+                      setBadgeInput("")
+                    }
+                  }}
+                  className='bg-slate-800 text-white font-bold py-2 px-4 rounded-lg text-sm h-[42px]'
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             {/* Product Image */}

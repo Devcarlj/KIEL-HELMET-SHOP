@@ -3,7 +3,7 @@ import { deleteImageCloudinary, getPublicIdFromUrl } from "../utils/uploadImageC
 
 export const createProductController = async (request, response) => {
     try {
-        const { name, image, category, subCategory, unit, stock, price, discount, description, more_details, variations, variationStocks } = request.body
+        const { name, image, category, subCategory, unit, stock, price, discount, description, more_details, variations, variationStocks, badges } = request.body
 
         if (!name || !image || !category || !description) {
             return response.status(400).json({
@@ -25,7 +25,8 @@ export const createProductController = async (request, response) => {
             description,
             more_details,
             variations,
-            variationStocks
+            variationStocks,
+            badges
         })
 
         const saveProduct = await newProduct.save()

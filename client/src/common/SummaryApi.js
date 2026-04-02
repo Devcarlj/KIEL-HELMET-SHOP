@@ -45,6 +45,14 @@ const SummaryApi = {
         url: '/api/user/update-user',
         method: 'put'
     },
+    toggleFavorite: {
+        url: '/api/user/toggle-favorite',
+        method: 'post'
+    },
+    getFavorites: {
+        url: '/api/user/get-favorites',
+        method: 'get'
+    },
     addCategory: {
         url: '/api/category/add-category',
         method: 'post'

@@ -14,6 +14,7 @@ export const chatBurstLimiter = rateLimit({
     limit: 3,            // 3 messages per minute
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    skip: (req) => req.user?.role === 'ADMIN',
     message: {
         error: true,
         success: false,
@@ -28,6 +29,7 @@ export const chatDailyLimiter = rateLimit({
     limit: 10,                       // 10 messages per day per IP
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    skip: (req) => req.user?.role === 'ADMIN',
     // Append today's date to the key so the counter auto-resets at midnight
     keyGenerator: (req) => {
         const today = new Date().toISOString().slice(0, 10); // "2026-03-31"
