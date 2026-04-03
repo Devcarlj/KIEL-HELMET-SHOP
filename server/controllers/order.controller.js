@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import OrderModel from "../models/order.model.js";
 import UserModel from "../models/user.model.js";
+import ProductModel from "../models/product.model.js";
 import Stripe from "../config/stripe.js";
 
 // Generate a unique order ID like "ORD-20260303-XXXXX"
@@ -97,6 +98,42 @@ export const placeOrderController = async (request, response) => {
         });
 
         const savedOrder = await order.save();
+
+        // ── Reduce product stock for each ordered item ──────────────────────
+        for (const item of products) {
+            const product = await ProductModel.findById(item.productId);
+            if (!product) continue;
+
+            const hasVariations = item.variations && item.variations.length > 0;
+
+            if (hasVariations && product.variationStocks && product.variationStocks.length > 0) {
+                // Find the matching variationStocks entry
+                const matchIdx = product.variationStocks.findIndex(vs => {
+                    const combos = vs.combinations || {};
+                    return item.variations.every(v => {
+                        // Match by variation name → selected value
+                        const comboVal = combos[v.name];
+                        return comboVal && comboVal.toString().toLowerCase() === v.value.toString().toLowerCase();
+                    });
+                });
+
+                if (matchIdx !== -1) {
+                    // Decrement the variation stock (floor at 0)
+                    product.variationStocks[matchIdx].stock = Math.max(
+                        0,
+                        (product.variationStocks[matchIdx].stock || 0) - item.quantity
+                    );
+                }
+
+                // Recalculate overall stock as sum of all variation stocks
+                product.stock = product.variationStocks.reduce((sum, vs) => sum + (vs.stock || 0), 0);
+            } else {
+                // Simple product – just decrement top-level stock
+                product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+            }
+
+            await product.save();
+        }
 
         // Add to user's order history
         await UserModel.findByIdAndUpdate(userId, {
@@ -468,6 +505,35 @@ export const cancelOrderController = async (request, response) => {
         });
 
         await order.save();
+
+        // ── Restore product stock on cancellation ───────────────────────────
+        for (const item of order.products) {
+            const product = await ProductModel.findById(item.productId);
+            if (!product) continue;
+
+            const hasVariations = item.variations && item.variations.length > 0;
+
+            if (hasVariations && product.variationStocks && product.variationStocks.length > 0) {
+                const matchIdx = product.variationStocks.findIndex(vs => {
+                    const combos = vs.combinations || {};
+                    return item.variations.every(v => {
+                        const comboVal = combos[v.name];
+                        return comboVal && comboVal.toString().toLowerCase() === v.value.toString().toLowerCase();
+                    });
+                });
+
+                if (matchIdx !== -1) {
+                    product.variationStocks[matchIdx].stock =
+                        (product.variationStocks[matchIdx].stock || 0) + item.quantity;
+                }
+
+                product.stock = product.variationStocks.reduce((sum, vs) => sum + (vs.stock || 0), 0);
+            } else {
+                product.stock = (product.stock || 0) + item.quantity;
+            }
+
+            await product.save();
+        }
 
         return response.json({
             message: "Order cancelled successfully",

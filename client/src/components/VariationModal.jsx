@@ -137,6 +137,12 @@ const VariationModal = ({ product, close }) => {
                                     <span className='text-[10px] text-slate-400 line-through'>{DisplayPrice(product.price)}</span>
                                 )}
                             </div>
+                            <p className={`text-[10px] font-bold mt-1 transition-all duration-300 ${currentVariationStock > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                {product.variations?.length > 0 && Object.keys(selectedVariations).length === product.variations.length
+                                    ? (currentVariationStock > 0 ? `Stock: ${currentVariationStock} pieces available` : "Out of Stock")
+                                    : (currentVariationStock > 0 ? `${currentVariationStock} units available` : "Out of Stock")
+                                }
+                            </p>
                         </div>
                     </div>
 

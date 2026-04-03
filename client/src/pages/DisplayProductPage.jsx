@@ -721,8 +721,11 @@ const DisplayProductPage = () => {
                 >
                   <div className='flex items-center justify-between mb-1'>
                     <h3 className='text-[11px] font-black text-slate-400 uppercase tracking-widest'>Selection</h3>
-                    <span className={`text-[11px] font-bold ${totalStock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {totalStock > 0 ? `${totalStock} units available` : "Out of Stock"}
+                    <span className={`text-[11px] font-bold transition-all duration-300 ${currentVariationStock > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {Object.keys(selectedVariations).length === product.variations.length
+                        ? (currentVariationStock > 0 ? `Stock: ${currentVariationStock} pieces available` : "Out of Stock")
+                        : (totalStock > 0 ? `${totalStock} units available` : "Out of Stock")
+                      }
                     </span>
                   </div>
                   <style>
@@ -777,9 +780,14 @@ const DisplayProductPage = () => {
 
               {/* Unified CTA Buttons Section */}
               <div className='flex items-center justify-center gap-2 md:gap-4 px-4 md:px-0 py-2 md:py-0 w-full'>
-                <button className='w-[48px] md:w-[60px] h-[48px] md:h-[60px] flex items-center justify-center bg-slate-50 md:bg-white border border-slate-200 shadow-sm rounded-sm md:rounded-xl active:scale-95 transition-all group shrink-0'>
+                <a 
+                  href="https://www.facebook.com/messages/t/100092575211604" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className='w-[48px] md:w-[60px] h-[48px] md:h-[60px] flex items-center justify-center bg-slate-50 md:bg-white border border-slate-200 shadow-sm rounded-sm md:rounded-xl active:scale-95 transition-all group shrink-0'
+                >
                   <HiOutlineChatAlt2 size={24} className='text-primary group-active:scale-90 transition-transform md:w-7 md:h-7' />
-                </button>
+                </a>
 
                 <button
                   onClick={handleAddToCartUnified}
