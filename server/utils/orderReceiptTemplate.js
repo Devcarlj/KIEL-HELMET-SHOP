@@ -1,5 +1,5 @@
-const orderReceiptTemplate = ({ name, orderId, products, totalAmount, subTotalAmount, shippingFee, paymentMethod, deliveryAddress, frontendUrl }) => {
-    const orderUrl = `${frontendUrl}/dashboard/my-orders`;
+const orderReceiptTemplate = ({ name, orderId, products, totalAmount, subTotalAmount, shippingFee, paymentMethod, deliveryAddress, orderDbId, frontendUrl }) => {
+    const orderUrl = `${frontendUrl}/login?redirect=${encodeURIComponent(`/dashboard/order-details/${orderDbId}`)}`;
 
     const productRows = products.map(p => {
         const variationText = p.variations && p.variations.length > 0

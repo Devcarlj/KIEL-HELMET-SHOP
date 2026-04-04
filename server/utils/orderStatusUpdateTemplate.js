@@ -6,9 +6,9 @@ const statusConfig = {
     cancelled: { label: 'Cancelled', color: '#EF4444', bg: '#FEE2E2', icon: '❌' },
 };
 
-const orderStatusUpdateTemplate = ({ name, orderId, status, products, totalAmount, trackingNumber, frontendUrl }) => {
+const orderStatusUpdateTemplate = ({ name, orderId, status, products, totalAmount, trackingNumber, orderDbId, frontendUrl }) => {
     const cfg = statusConfig[status] || statusConfig.pending;
-    const orderUrl = `${frontendUrl}/dashboard/my-orders`;
+    const orderUrl = `${frontendUrl}/login?redirect=${encodeURIComponent(`/dashboard/order-details/${orderDbId}`)}`;
 
     const productRows = products.map(p => {
         const variationText = p.variations && p.variations.length > 0

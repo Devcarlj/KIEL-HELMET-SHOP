@@ -6,15 +6,31 @@ import Axios from '../utils/Axios.js';
 import SummaryApi from '../common/SummaryApi.js';
 import AxiosToastError from '../utils/AxiosToastError.js';
 import logo from '../assets/KielHelmetShop.png';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setUserDetails } from '../store/userSlice'
 import fetchCartItems from '../utils/fetchCartItems.js';
 import { setCart } from '../store/cartSlice';
-const Login = () => {
+import { useEffect } from 'react';
 
+const Login = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+    const user = useSelector(state => state.user);
+
+    useEffect(() => {
+        // If user is already logged in, redirect them
+        if (user?._id) {
+            const queryParams = new URLSearchParams(location.search);
+            const redirectPath = queryParams.get("redirect");
+            if (redirectPath) {
+                navigate(redirectPath);
+            } else {
+                navigate("/");
+            }
+        }
+    }, [user, navigate, location]);
+
     const [data, setData] = useState({
         email: "",
         password: "",
@@ -95,7 +111,15 @@ const Login = () => {
 
                 toast.success(response.data.message);
                 setData({ email: "", password: "" });
-                navigate("/");
+
+                const queryParams = new URLSearchParams(location.search);
+                const redirectPath = queryParams.get("redirect");
+
+                if (redirectPath) {
+                    navigate(redirectPath);
+                } else {
+                    navigate("/");
+                }
             }
 
             if (response.data.error) {

@@ -53,12 +53,13 @@ const MyOrders = () => {
     })
   }
 
-  const handleCancelOrder = async () => {
+  const handleCancelOrder = async (reason) => {
     try {
       setCancelOrderModal(prev => ({ ...prev, loading: true }))
       const response = await Axios({
         ...SummaryApi.cancelOrder,
-        url: `${SummaryApi.cancelOrder.url}/${cancelOrderModal.orderId}`
+        url: `${SummaryApi.cancelOrder.url}/${cancelOrderModal.orderId}`,
+        data: { reason }
       })
 
       if (response.data.success) {

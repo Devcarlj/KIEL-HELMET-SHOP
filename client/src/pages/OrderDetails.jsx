@@ -31,12 +31,13 @@ const OrderDetails = () => {
     const { data: reviewsData, mutate: mutateReviews } = useSWR(user?._id ? SummaryApi.getUserReviews : null)
     const userReviews = reviewsData?.success ? reviewsData.data : []
 
-    const handleCancelOrder = async () => {
+    const handleCancelOrder = async (reason) => {
         try {
             setCancelOrderModal(prev => ({ ...prev, loading: true }))
             const response = await Axios({
                 ...SummaryApi.cancelOrder,
-                url: `${SummaryApi.cancelOrder.url}/${order._id}`
+                url: `${SummaryApi.cancelOrder.url}/${order._id}`,
+                data: { reason }
             })
 
             if (response.data.success) {

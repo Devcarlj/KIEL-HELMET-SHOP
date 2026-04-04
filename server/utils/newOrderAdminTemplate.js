@@ -8,9 +8,10 @@ const newOrderAdminTemplate = ({
     shippingFee, 
     paymentMethod, 
     deliveryAddress, 
+    orderDbId,
     frontendUrl 
 }) => {
-    const adminOrderUrl = `${frontendUrl}/dashboard/all-orders`;
+    const adminOrderUrl = `${frontendUrl}/login?redirect=${encodeURIComponent(`/dashboard/order-details/${orderDbId}`)}`;
 
     const productRows = products.map(p => {
         const variationText = p.variations && p.variations.length > 0

@@ -166,6 +166,7 @@ export const placeOrderController = async (request, response) => {
                         shippingFee: savedOrder.shippingFee,
                         paymentMethod: savedOrder.paymentMethod,
                         deliveryAddress: savedOrder.deliveryAddress,
+                        orderDbId: savedOrder._id,
                         frontendUrl: process.env.FRONTEND_URL
                     })
                 });
@@ -193,6 +194,7 @@ export const placeOrderController = async (request, response) => {
                             shippingFee: savedOrder.shippingFee,
                             paymentMethod: savedOrder.paymentMethod,
                             deliveryAddress: savedOrder.deliveryAddress,
+                            orderDbId: savedOrder._id,
                             frontendUrl: process.env.FRONTEND_URL
                         })
                     });
@@ -497,6 +499,7 @@ export const updateOrderStatusController = async (request, response) => {
                             products: order.products,
                             totalAmount: order.totalAmount,
                             trackingNumber: order.trackingNumber || '',
+                            orderDbId: order._id,
                             frontendUrl: process.env.FRONTEND_URL
                         })
                     });
@@ -548,6 +551,7 @@ export const getAllOrdersController = async (request, response) => {
 export const cancelOrderController = async (request, response) => {
     try {
         const { id } = request.params;
+        const { reason } = request.body;
         const userId = request.userId;
 
         const order = await OrderModel.findById(id);
@@ -582,7 +586,8 @@ export const cancelOrderController = async (request, response) => {
         order.statusHistory.push({
             status: 'cancelled',
             timestamp: new Date(),
-            updatedBy: userId
+            updatedBy: userId,
+            reason: reason || "No reason provided"
         });
 
         await order.save();
@@ -602,6 +607,8 @@ export const cancelOrderController = async (request, response) => {
                             orderId: order.orderId,
                             products: order.products,
                             totalAmount: order.totalAmount,
+                            reason: reason || "No reason provided",
+                            orderDbId: order._id,
                             frontendUrl: process.env.FRONTEND_URL
                         })
                     });

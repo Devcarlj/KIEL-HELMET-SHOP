@@ -1,4 +1,4 @@
-const orderCancelledAdminTemplate = ({ customerName, customerEmail, orderId, products, totalAmount, frontendUrl }) => {
+const orderCancelledAdminTemplate = ({ customerName, customerEmail, orderId, products, totalAmount, reason, orderDbId, frontendUrl }) => {
 
     const productRows = products.map(p => {
         const variationText = p.variations && p.variations.length > 0
@@ -16,7 +16,7 @@ const orderCancelledAdminTemplate = ({ customerName, customerEmail, orderId, pro
         `;
     }).join('');
 
-    const adminOrderUrl = `${frontendUrl}/dashboard/all-orders`;
+    const adminOrderUrl = `${frontendUrl}/login?redirect=${encodeURIComponent(`/dashboard/order-details/${orderDbId}`)}`;
 
     return `
     <div style="font-family: 'Poppins', 'Inter', 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 20px auto; background-color: #FDF5E6; padding: 40px; border: 1px solid #E66E33; border-radius: 20px; box-shadow: 0 10px 25px rgba(139, 34, 34, 0.08);">
@@ -53,8 +53,13 @@ const orderCancelledAdminTemplate = ({ customerName, customerEmail, orderId, pro
                     <td style="padding: 6px 0; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Order ID</td>
                     <td style="padding: 6px 0; font-size: 15px; color: #8B2222; font-weight: 800; text-align: right; font-family: 'Courier New', monospace;">${orderId}</td>
                 </tr>
+                <tr>
+                    <td style="padding: 12px 0 6px 0; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; border-top: 1px solid #E66E3333; margin-top: 6px;">Reason</td>
+                    <td style="padding: 12px 0 6px 0; font-size: 14px; color: #EF4444; font-weight: 700; text-align: right; border-top: 1px solid #E66E3333; margin-top: 6px;">${reason}</td>
+                </tr>
             </table>
         </div>
+
 
         <div style="background-color: #F3EBDD; border-radius: 12px; overflow: hidden; margin: 24px 0;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
