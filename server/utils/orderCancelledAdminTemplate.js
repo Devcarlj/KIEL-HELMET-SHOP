@@ -16,7 +16,7 @@ const orderCancelledAdminTemplate = ({ customerName, customerEmail, orderId, pro
         `;
     }).join('');
 
-    const adminOrderUrl = `${frontendUrl}/dashboard/orders`;
+    const adminOrderUrl = `${frontendUrl}/dashboard/all-orders`;
 
     return `
     <div style="font-family: 'Poppins', 'Inter', 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 20px auto; background-color: #FDF5E6; padding: 40px; border: 1px solid #E66E33; border-radius: 20px; box-shadow: 0 10px 25px rgba(139, 34, 34, 0.08);">

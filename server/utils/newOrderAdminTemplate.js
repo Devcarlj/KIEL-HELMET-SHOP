@@ -10,7 +10,7 @@ const newOrderAdminTemplate = ({
     deliveryAddress, 
     frontendUrl 
 }) => {
-    const adminOrderUrl = `${frontendUrl}/dashboard/orders`;
+    const adminOrderUrl = `${frontendUrl}/dashboard/all-orders`;
 
     const productRows = products.map(p => {
         const variationText = p.variations && p.variations.length > 0

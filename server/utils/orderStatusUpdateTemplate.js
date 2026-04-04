@@ -8,7 +8,7 @@ const statusConfig = {
 
 const orderStatusUpdateTemplate = ({ name, orderId, status, products, totalAmount, trackingNumber, frontendUrl }) => {
     const cfg = statusConfig[status] || statusConfig.pending;
-    const orderUrl = `${frontendUrl}/dashboard/orders`;
+    const orderUrl = `${frontendUrl}/dashboard/my-orders`;
 
     const productRows = products.map(p => {
         const variationText = p.variations && p.variations.length > 0
