@@ -3,6 +3,11 @@ import OrderModel from "../models/order.model.js";
 import UserModel from "../models/user.model.js";
 import ProductModel from "../models/product.model.js";
 import Stripe from "../config/stripe.js";
+import sendEmail from "../config/sendEmail.js";
+import orderStatusUpdateTemplate from "../utils/orderStatusUpdateTemplate.js";
+import orderCancelledAdminTemplate from "../utils/orderCancelledAdminTemplate.js";
+import orderReceiptTemplate from "../utils/orderReceiptTemplate.js";
+import newOrderAdminTemplate from "../utils/newOrderAdminTemplate.js";
 
 // Generate a unique order ID like "ORD-20260303-XXXXX"
 function generateOrderId() {
@@ -144,6 +149,58 @@ export const placeOrderController = async (request, response) => {
         await UserModel.findByIdAndUpdate(userId, {
             $set: { shopping_cart: [] }
         });
+
+        // ── Send receipt email to customer ─────────────────────────
+        try {
+            const customer = await UserModel.findById(userId);
+            if (customer && customer.email) {
+                await sendEmail({
+                    sendTo: customer.email,
+                    subject: `Order Confirmation – ${savedOrder.orderId}`,
+                    html: orderReceiptTemplate({
+                        name: customer.name,
+                        orderId: savedOrder.orderId,
+                        products: savedOrder.products,
+                        totalAmount: savedOrder.totalAmount,
+                        subTotalAmount: savedOrder.subTotalAmount,
+                        shippingFee: savedOrder.shippingFee,
+                        paymentMethod: savedOrder.paymentMethod,
+                        deliveryAddress: savedOrder.deliveryAddress,
+                        frontendUrl: process.env.FRONTEND_URL
+                    })
+                });
+            }
+        } catch (emailError) {
+            console.error('Failed to send order receipt email:', emailError);
+        }
+
+        // ── Notify all admins about new order ──────────────────────────
+        try {
+            const customer = await UserModel.findById(userId);
+            const admins = await UserModel.find({ role: 'ADMIN' });
+            for (const admin of admins) {
+                if (admin.email) {
+                    await sendEmail({
+                        sendTo: admin.email,
+                        subject: `🔔 New Order Received – ${savedOrder.orderId}`,
+                        html: newOrderAdminTemplate({
+                            customerName: customer?.name || 'Unknown',
+                            customerEmail: customer?.email || 'N/A',
+                            orderId: savedOrder.orderId,
+                            products: savedOrder.products,
+                            totalAmount: savedOrder.totalAmount,
+                            subTotalAmount: savedOrder.subTotalAmount,
+                            shippingFee: savedOrder.shippingFee,
+                            paymentMethod: savedOrder.paymentMethod,
+                            deliveryAddress: savedOrder.deliveryAddress,
+                            frontendUrl: process.env.FRONTEND_URL
+                        })
+                    });
+                }
+            }
+        } catch (adminEmailError) {
+            console.error('Failed to send new order notification to admin:', adminEmailError);
+        }
 
         return response.json({
             message: "Order placed successfully!",
@@ -425,6 +482,30 @@ export const updateOrderStatusController = async (request, response) => {
         const updatedOrder = await order.save();
         const populatedOrder = await OrderModel.findById(updatedOrder._id).populate('statusHistory.updatedBy', 'name email');
 
+        // ── Send email notification to customer (only if status is not pending) ──
+        if (status !== 'pending') {
+            try {
+                const customer = await UserModel.findById(order.userId);
+                if (customer && customer.email) {
+                    await sendEmail({
+                        sendTo: customer.email,
+                        subject: `Order ${order.orderId} – Status Updated to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                        html: orderStatusUpdateTemplate({
+                            name: customer.name,
+                            orderId: order.orderId,
+                            status,
+                            products: order.products,
+                            totalAmount: order.totalAmount,
+                            trackingNumber: order.trackingNumber || '',
+                            frontendUrl: process.env.FRONTEND_URL
+                        })
+                    });
+                }
+            } catch (emailError) {
+                console.error('Failed to send order status email:', emailError);
+            }
+        }
+
         return response.json({
             message: `Order status updated to ${status}`,
             error: false,
@@ -505,6 +586,30 @@ export const cancelOrderController = async (request, response) => {
         });
 
         await order.save();
+
+        // ── Notify all admins about cancellation ────────────────────────
+        try {
+            const customer = await UserModel.findById(userId);
+            const admins = await UserModel.find({ role: 'ADMIN' });
+            for (const admin of admins) {
+                if (admin.email) {
+                    await sendEmail({
+                        sendTo: admin.email,
+                        subject: `⚠️ Order ${order.orderId} Cancelled by ${customer?.name || 'Customer'}`,
+                        html: orderCancelledAdminTemplate({
+                            customerName: customer?.name || 'Unknown',
+                            customerEmail: customer?.email || 'N/A',
+                            orderId: order.orderId,
+                            products: order.products,
+                            totalAmount: order.totalAmount,
+                            frontendUrl: process.env.FRONTEND_URL
+                        })
+                    });
+                }
+            }
+        } catch (emailError) {
+            console.error('Failed to send cancellation email to admin:', emailError);
+        }
 
         // ── Restore product stock on cancellation ───────────────────────────
         for (const item of order.products) {

@@ -4,7 +4,7 @@ const verifyEmailTemplate = ({ name, url }) => {
         
         <div style="text-align: center; margin-bottom: 30px;">
             <div style="margin-bottom: 15px;">
-                <img src="https://res.cloudinary.com/df0pfiqdh/image/upload/v1772970556/kielHelmetShop/assets/logo.png" alt="Kiel Helmet Shop" style="height: 60px; width: auto;">
+                <img src="<img src="https://res.cloudinary.com/df0pfiqdh/image/upload/f_auto,q_auto/v1772970556/kielHelmetShop/assets/logo.png" alt="Kiel Helmet Shop" style="height: 60px; width: auto;">
             </div>
             <h1 style="color: #8B2222; font-size: 24px; margin: 0; font-weight: 800; letter-spacing: -0.5px;">KIEL HELMET SHOP</h1>
             <div style="width: 50px; height: 3px; background-color: #E66E33; margin: 15px auto;"></div>

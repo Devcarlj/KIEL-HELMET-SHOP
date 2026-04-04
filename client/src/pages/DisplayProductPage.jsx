@@ -781,7 +781,7 @@ const DisplayProductPage = () => {
               {/* Unified CTA Buttons Section */}
               <div className='flex items-center justify-center gap-2 md:gap-4 px-4 md:px-0 py-2 md:py-0 w-full'>
                 <a 
-                  href="https://www.facebook.com/messages/t/100092575211604" 
+                  href="https://www.facebook.com/people/KIEL-Helmet-SHOP/100092575211604/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className='w-[48px] md:w-[60px] h-[48px] md:h-[60px] flex items-center justify-center bg-slate-50 md:bg-white border border-slate-200 shadow-sm rounded-sm md:rounded-xl active:scale-95 transition-all group shrink-0'
