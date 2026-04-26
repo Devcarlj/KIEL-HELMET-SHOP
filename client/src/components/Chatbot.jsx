@@ -222,6 +222,11 @@ const Chatbot = () => {
     e?.preventDefault();
     if (!input.trim() || isLoading || dailyLimitReached) return;
 
+    if (input.length > 500) {
+      toast.error("Message is too long, rider! Keep it under 500 characters.");
+      return;
+    }
+
     const userMessage = input.trim();
     setInput('');
 
@@ -587,6 +592,7 @@ const Chatbot = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Message your pit crew..."
+                  maxLength={505} // Slightly more to allow the toast to trigger if they paste
                   className="w-full bg-brand-cream/50 text-brand-text rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:bg-white transition-all shadow-inner border border-transparent focus:border-brand-primary/10"
                   disabled={isLoading}
                 />
