@@ -1,14 +1,14 @@
 import UserModel from "../models/user.model.js";
 
-const admin = async (request, response, next) => {
+const superadmin = async (request, response, next) => {
     try {
         const userId = request.userId;
 
         const user = await UserModel.findById(userId);
 
-        if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+        if (!user || user.role !== 'SUPERADMIN') {
             return response.status(403).json({
-                message: "Access denied. Admin only.",
+                message: "Access denied. Super Admin only.",
                 error: true,
                 success: false
             });
@@ -24,4 +24,4 @@ const admin = async (request, response, next) => {
     }
 }
 
-export default admin;
+export default superadmin;

@@ -1,5 +1,5 @@
- const isAdmin = (s) => {
-    if ( s=== 'ADMIN'){
+const isAdmin = (s) => {
+    if ( s === 'ADMIN' || s === 'SUPERADMIN'){
         return true
     }
     return false

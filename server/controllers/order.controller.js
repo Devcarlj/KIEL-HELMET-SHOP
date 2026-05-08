@@ -8,6 +8,14 @@ import orderStatusUpdateTemplate from "../utils/orderStatusUpdateTemplate.js";
 import orderCancelledAdminTemplate from "../utils/orderCancelledAdminTemplate.js";
 import orderReceiptTemplate from "../utils/orderReceiptTemplate.js";
 import newOrderAdminTemplate from "../utils/newOrderAdminTemplate.js";
+import EmailSettingsModel from "../models/emailSettings.model.js";
+
+// Helper: get email settings (returns defaults if not set yet)
+async function getEmailSettings() {
+    let settings = await EmailSettingsModel.findOne({});
+    if (!settings) settings = {};
+    return settings;
+}
 
 // Generate a unique order ID like "ORD-20260303-XXXXX"
 function generateOrderId() {
@@ -152,41 +160,15 @@ export const placeOrderController = async (request, response) => {
 
         // ── Send receipt email to customer ─────────────────────────
         try {
-            const customer = await UserModel.findById(userId);
-            if (customer && customer.email) {
-                await sendEmail({
-                    sendTo: customer.email,
-                    subject: `Order Confirmation – ${savedOrder.orderId}`,
-                    html: orderReceiptTemplate({
-                        name: customer.name,
-                        orderId: savedOrder.orderId,
-                        products: savedOrder.products,
-                        totalAmount: savedOrder.totalAmount,
-                        subTotalAmount: savedOrder.subTotalAmount,
-                        shippingFee: savedOrder.shippingFee,
-                        paymentMethod: savedOrder.paymentMethod,
-                        deliveryAddress: savedOrder.deliveryAddress,
-                        orderDbId: savedOrder._id,
-                        frontendUrl: process.env.FRONTEND_URL
-                    })
-                });
-            }
-        } catch (emailError) {
-            console.error('Failed to send order receipt email:', emailError);
-        }
-
-        // ── Notify all admins about new order ──────────────────────────
-        try {
-            const customer = await UserModel.findById(userId);
-            const admins = await UserModel.find({ role: 'ADMIN' });
-            for (const admin of admins) {
-                if (admin.email) {
+            const emailSettings = await getEmailSettings();
+            if (emailSettings.orderCheckout !== false) {
+                const customer = await UserModel.findById(userId);
+                if (customer && customer.email) {
                     await sendEmail({
-                        sendTo: admin.email,
-                        subject: `🔔 New Order Received – ${savedOrder.orderId}`,
-                        html: newOrderAdminTemplate({
-                            customerName: customer?.name || 'Unknown',
-                            customerEmail: customer?.email || 'N/A',
+                        sendTo: customer.email,
+                        subject: `Order Confirmation – ${savedOrder.orderId}`,
+                        html: orderReceiptTemplate({
+                            name: customer.name,
                             orderId: savedOrder.orderId,
                             products: savedOrder.products,
                             totalAmount: savedOrder.totalAmount,
@@ -198,6 +180,38 @@ export const placeOrderController = async (request, response) => {
                             frontendUrl: process.env.FRONTEND_URL
                         })
                     });
+                }
+            }
+        } catch (emailError) {
+            console.error('Failed to send order receipt email:', emailError);
+        }
+
+        // ── Notify all admins about new order ──────────────────────────
+        try {
+            const emailSettings = await getEmailSettings();
+            if (emailSettings.newOrderAdminAlert !== false) {
+                const customer = await UserModel.findById(userId);
+                const admins = await UserModel.find({ role: { $in: ['ADMIN', 'SUPERADMIN'] } });
+                for (const admin of admins) {
+                    if (admin.email) {
+                        await sendEmail({
+                            sendTo: admin.email,
+                            subject: `🔔 New Order Received – ${savedOrder.orderId}`,
+                            html: newOrderAdminTemplate({
+                                customerName: customer?.name || 'Unknown',
+                                customerEmail: customer?.email || 'N/A',
+                                orderId: savedOrder.orderId,
+                                products: savedOrder.products,
+                                totalAmount: savedOrder.totalAmount,
+                                subTotalAmount: savedOrder.subTotalAmount,
+                                shippingFee: savedOrder.shippingFee,
+                                paymentMethod: savedOrder.paymentMethod,
+                                deliveryAddress: savedOrder.deliveryAddress,
+                                orderDbId: savedOrder._id,
+                                frontendUrl: process.env.FRONTEND_URL
+                            })
+                        });
+                    }
                 }
             }
         } catch (adminEmailError) {
@@ -401,8 +415,8 @@ export const getOrderDetailsByIdController = async (request, response) => {
             });
         }
 
-        // Allow if user is order owner or an ADMIN
-        if (order.userId.toString() !== userId && user.role !== 'ADMIN') {
+        // Allow if user is order owner or an ADMIN/SUPERADMIN
+        if (order.userId.toString() !== userId && user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
             return response.status(403).json({
                 message: "Unauthorized access to order details",
                 error: true,
@@ -410,8 +424,8 @@ export const getOrderDetailsByIdController = async (request, response) => {
             });
         }
 
-        // If admin is viewing, mark as seen
-        if (user.role === 'ADMIN' && !order.isAdminSeen) {
+        // If admin/superadmin is viewing, mark as seen
+        if ((user.role === 'ADMIN' || user.role === 'SUPERADMIN') && !order.isAdminSeen) {
             order.isAdminSeen = true;
             await order.save();
         }
@@ -489,22 +503,25 @@ export const updateOrderStatusController = async (request, response) => {
         // ── Send email notification to customer (only if status is not pending) ──
         if (status !== 'pending') {
             try {
-                const customer = await UserModel.findById(order.userId);
-                if (customer && customer.email) {
-                    await sendEmail({
-                        sendTo: customer.email,
-                        subject: `Order ${order.orderId} – Status Updated to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-                        html: orderStatusUpdateTemplate({
-                            name: customer.name,
-                            orderId: order.orderId,
-                            status,
-                            products: order.products,
-                            totalAmount: order.totalAmount,
-                            trackingNumber: order.trackingNumber || '',
-                            orderDbId: order._id,
-                            frontendUrl: process.env.FRONTEND_URL
-                        })
-                    });
+                const emailSettings = await getEmailSettings();
+                if (emailSettings.orderStatusUpdate !== false) {
+                    const customer = await UserModel.findById(order.userId);
+                    if (customer && customer.email) {
+                        await sendEmail({
+                            sendTo: customer.email,
+                            subject: `Order ${order.orderId} – Status Updated to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                            html: orderStatusUpdateTemplate({
+                                name: customer.name,
+                                orderId: order.orderId,
+                                status,
+                                products: order.products,
+                                totalAmount: order.totalAmount,
+                                trackingNumber: order.trackingNumber || '',
+                                orderDbId: order._id,
+                                frontendUrl: process.env.FRONTEND_URL
+                            })
+                        });
+                    }
                 }
             } catch (emailError) {
                 console.error('Failed to send order status email:', emailError);
@@ -596,24 +613,27 @@ export const cancelOrderController = async (request, response) => {
 
         // ── Notify all admins about cancellation ────────────────────────
         try {
-            const customer = await UserModel.findById(userId);
-            const admins = await UserModel.find({ role: 'ADMIN' });
-            for (const admin of admins) {
-                if (admin.email) {
-                    await sendEmail({
-                        sendTo: admin.email,
-                        subject: `⚠️ Order ${order.orderId} Cancelled by ${customer?.name || 'Customer'}`,
-                        html: orderCancelledAdminTemplate({
-                            customerName: customer?.name || 'Unknown',
-                            customerEmail: customer?.email || 'N/A',
-                            orderId: order.orderId,
-                            products: order.products,
-                            totalAmount: order.totalAmount,
-                            reason: reason || "No reason provided",
-                            orderDbId: order._id,
-                            frontendUrl: process.env.FRONTEND_URL
-                        })
-                    });
+            const emailSettings = await getEmailSettings();
+            if (emailSettings.orderCancellation !== false) {
+                const customer = await UserModel.findById(userId);
+                const admins = await UserModel.find({ role: { $in: ['ADMIN', 'SUPERADMIN'] } });
+                for (const admin of admins) {
+                    if (admin.email) {
+                        await sendEmail({
+                            sendTo: admin.email,
+                            subject: `⚠️ Order ${order.orderId} Cancelled by ${customer?.name || 'Customer'}`,
+                            html: orderCancelledAdminTemplate({
+                                customerName: customer?.name || 'Unknown',
+                                customerEmail: customer?.email || 'N/A',
+                                orderId: order.orderId,
+                                products: order.products,
+                                totalAmount: order.totalAmount,
+                                reason: reason || "No reason provided",
+                                orderDbId: order._id,
+                                frontendUrl: process.env.FRONTEND_URL
+                            })
+                        });
+                    }
                 }
             }
         } catch (emailError) {

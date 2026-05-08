@@ -6,6 +6,7 @@ import { clearCart } from '../store/cartSlice'
 import { HiOutlineExternalLink, HiOutlineHome } from "react-icons/hi";
 import { FaRegUserCircle } from "react-icons/fa";
 import isAdmin from '../utils/isAdmin'
+import isSuperAdmin from '../utils/isSuperAdmin'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import defaultUserAvatar from '../assets/default_user_profiles.png'
@@ -90,7 +91,12 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
         <div className='flex flex-col min-w-0'>
           <p className='font-bold text-brand-primary leading-tight truncate flex items-center gap-1.5'>
             {user.name || "User"}
-            {isAdmin(user.role) && (
+            {isSuperAdmin(user.role) && (
+              <span className='text-xs font-semibold text-white bg-purple-600 px-1.5 py-0.5 rounded-full leading-none'>
+                SuperAdmin
+              </span>
+            )}
+            {isAdmin(user.role) && !isSuperAdmin(user.role) && (
               <span className='text-xs font-semibold text-brand-cream bg-brand-primary px-1.5 py-0.5 rounded-full leading-none'>
                 Admin
               </span>
@@ -175,6 +181,17 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
               )}
             </div>
             <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/all-orders' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          </Link>
+        )}
+
+        {isSuperAdmin(user.role) && (
+          <Link
+            to="/dashboard/superadmin-settings"
+            onClick={handleLinkClick}
+            className={getLinkClass("/dashboard/superadmin-settings")}
+          >
+            Settings
+            <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/superadmin-settings' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </Link>
         )}
 

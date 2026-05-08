@@ -220,6 +220,32 @@ const SummaryApi = {
     updateShopInfo: {
         url: '/api/user/update-shop-info',
         method: 'put'
+    },
+
+    // ── Super Admin ──────────────────────────────────────────────────
+    getEmailSettings: {
+        url: '/api/superadmin/email-settings',
+        method: 'get'
+    },
+    updateEmailSettings: {
+        url: '/api/superadmin/email-settings',
+        method: 'put'
+    },
+    getAdmins: {
+        url: '/api/superadmin/admins',
+        method: 'get'
+    },
+    addAdmin: {
+        url: '/api/superadmin/add-admin',
+        method: 'post'
+    },
+    removeAdmin: {
+        url: '/api/superadmin/remove-admin',
+        method: 'delete'
+    },
+    checkUserByEmail: {
+        url: '/api/superadmin/check-user',
+        method: 'post'
     }
 }
 export default SummaryApi

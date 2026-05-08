@@ -9,6 +9,13 @@ import generatedOtp from '../utils/generatedOtp.js';
 import forgotPasswordTemplate from '../utils/forgotPasswordTemplate.js';
 import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
+import EmailSettingsModel from '../models/emailSettings.model.js';
+
+async function getEmailSettings() {
+    let settings = await EmailSettingsModel.findOne({});
+    if (!settings) settings = {};
+    return settings;
+}
 
 
 // register controller
@@ -51,11 +58,14 @@ export async function registerUserController(request, response) {
         const verifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
 
         try {
-            await sendEmail({
-                sendTo: email,
-                subject: "Verify email from Kiel Helmet Shop",
-                html: verifyEmailTemplate({ name, url: verifyEmailUrl })
-            });
+            const emailSettings = await getEmailSettings();
+            if (emailSettings.registration !== false) {
+                await sendEmail({
+                    sendTo: email,
+                    subject: "Verify email from Kiel Helmet Shop",
+                    html: verifyEmailTemplate({ name, url: verifyEmailUrl })
+                });
+            }
         } catch (error) {
             console.log("Email failed to send:", error);
         }
@@ -368,18 +378,19 @@ export async function forgotPasswordController(request, response) {
 
 
         try {
-            await sendEmail({
-                sendTo: email,
-                subject: "Forgot password from Kiel Helmet Shop",
-                html: forgotPasswordTemplate({
-                    name: user.name,
-                    otp: otp
-                })
-            });
+            const emailSettings = await getEmailSettings();
+            if (emailSettings.forgotPassword !== false) {
+                await sendEmail({
+                    sendTo: email,
+                    subject: "Forgot password from Kiel Helmet Shop",
+                    html: forgotPasswordTemplate({
+                        name: user.name,
+                        otp: otp
+                    })
+                });
+            }
         } catch (error) {
             console.error("Email failed:", error);
-            // Even if it failed to send, you might still want to say 'Check your email'
-            // or perhaps return an error depending on desired UX.
         }
 
         return response.json({

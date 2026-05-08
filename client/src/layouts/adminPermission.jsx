@@ -11,7 +11,7 @@ const AdminPermission = ({ children }) => {
         return <div>Loading...</div>  // or your spinner
     }
 
-    // ✅ Now safely check role
+    // ✅ Now safely check role (isAdmin also returns true for SUPERADMIN)
     if (!isAdmin(user.role)) {
         return <Navigate to="/" replace />
     }

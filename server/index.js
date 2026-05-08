@@ -15,6 +15,7 @@ import cartRouter from './route/cart.route.js'
 import orderRouter from './route/order.route.js'
 import reviewRouter from './route/review.route.js'
 import chatRouter from './route/chat.route.js'
+import superadminRouter from './route/superadmin.route.js'
 import { webhookStripe } from './controllers/order.controller.js'
 
 const app = express();
@@ -65,6 +66,7 @@ mainRouter.use('/cart', cartRouter);
 mainRouter.use('/order', orderRouter);
 mainRouter.use('/review', reviewRouter);
 mainRouter.use('/chat', chatRouter);
+mainRouter.use('/superadmin', superadminRouter);
 
 app.use('/api', mainRouter);
 

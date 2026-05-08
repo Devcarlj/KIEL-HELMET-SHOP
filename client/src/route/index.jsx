@@ -39,6 +39,8 @@ const FavoritePage = lazy(() => import('../pages/FavoritePage.jsx'));
 // ─── Lazy-loaded layout components ───
 const Dashboard = lazy(() => import('../layouts/Dashboard.jsx'));
 const AdminPermission = lazy(() => import('../layouts/adminPermission.jsx'));
+const SuperAdminPermission = lazy(() => import('../layouts/superAdminPermission.jsx'));
+const SuperAdminSettings = lazy(() => import('../pages/SuperAdminSettings.jsx'));
 
 // ─── Helper: wrap element in Suspense ───
 const SuspenseWrap = ({ children }) => (
@@ -160,6 +162,10 @@ const router = createBrowserRouter([
           {
             path: "order-details/:orderId",
             element: <SuspenseWrap><OrderDetails /></SuspenseWrap>
+          },
+          {
+            path: "superadmin-settings",
+            element: <SuspenseWrap><SuperAdminPermission><SuperAdminSettings /></SuperAdminPermission></SuspenseWrap>
           }
         ]
       }
