@@ -5,12 +5,15 @@ import SummaryApi from '../common/SummaryApi'
 import AxiosToastError from '../utils/AxiosToastError'
 import { DisplayPrice } from '../utils/DisplayPrice'
 import Loading from '../components/Loading'
-import { HiOutlineChevronLeft, HiOutlineExternalLink, HiOutlineCheckCircle, HiOutlineTruck, HiOutlineClock, HiOutlineBan, HiOutlineCog } from "react-icons/hi";
+import { HiOutlineChevronLeft, HiOutlineExternalLink, HiOutlineCheckCircle, HiOutlineTruck, HiOutlineClock, HiOutlineBan, HiOutlineCog, HiOutlineDocumentDownload, HiOutlineClipboardList } from "react-icons/hi";
 import toast from 'react-hot-toast'
 import CancelOrderConfirm from '../components/CancelOrderConfirm'
 import { useSelector } from 'react-redux'
 import isAdmin from '../utils/isAdmin'
 import ReviewModal from '../components/ReviewModal'
+import DownloadPreviewModal from '../components/DownloadPreviewModal'
+import { generateOrderSummary } from '../utils/generateOrderSummary'
+import { generateWaybill } from '../utils/generateWaybill'
 import useSWR from 'swr'
 
 const OrderDetails = () => {
@@ -27,6 +30,7 @@ const OrderDetails = () => {
     const [reviewModalOpen, setReviewModalOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [existingReview, setExistingReview] = useState(null)
+    const [downloadModal, setDownloadModal] = useState({ isOpen: false, type: null })
 
     const { data: reviewsData, mutate: mutateReviews } = useSWR(user?._id ? SummaryApi.getUserReviews : null)
     const userReviews = reviewsData?.success ? reviewsData.data : []
@@ -153,21 +157,53 @@ const OrderDetails = () => {
 
     return (
         <div className='max-w-4xl mx-auto'>
-            <div className='mb-6 flex items-center justify-between'>
-                <Link to={-1} className='flex items-center gap-2 text-neutral-500 hover:text-neutral-800 font-bold transition-colors'>
-                    <HiOutlineChevronLeft className='w-5 h-5' />
-                    Go Back
-                </Link>
-                <div className='flex flex-col items-end'>
-                    <span className='text-[10px] uppercase font-bold text-neutral-400 tracking-widest'>Order ID</span>
-                    <span className='text-sm font-bold text-neutral-800'>{order.orderId}</span>
+            <div className='mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+                <div className='flex items-center justify-between w-full md:w-auto'>
+                    <Link to={-1} className='flex items-center gap-2 text-neutral-500 hover:text-neutral-800 font-bold transition-colors'>
+                        <HiOutlineChevronLeft className='w-5 h-5' />
+                        Go Back
+                    </Link>
+                    {/* On mobile, show Order ID here to keep top row balanced */}
+                    <div className='flex flex-col items-end md:hidden'>
+                        <span className='text-[10px] uppercase font-bold text-neutral-400 tracking-widest leading-none'>Order ID</span>
+                        <span className='text-sm font-bold text-neutral-800'>{order.orderId}</span>
+                    </div>
+                </div>
+
+                <div className='flex items-center justify-between md:justify-end gap-4'>
+                    {/* ── Admin Download Buttons ── */}
+                    {isAdmin(user.role) && (
+                        <div className='flex items-center gap-2'>
+                            <button
+                                onClick={() => setDownloadModal({ isOpen: true, type: 'summary' })}
+                                className='flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[11px] font-bold border border-indigo-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm'
+                                title='Download Order Summary'
+                            >
+                                <HiOutlineClipboardList className='w-4 h-4' />
+                                Summary
+                            </button>
+                            <button
+                                onClick={() => setDownloadModal({ isOpen: true, type: 'waybill' })}
+                                className='flex items-center gap-1.5 px-3 py-2 bg-rose-50 text-rose-600 rounded-xl text-[11px] font-bold border border-rose-100 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm'
+                                title='Download J&T Express Waybill'
+                            >
+                                <HiOutlineDocumentDownload className='w-4 h-4' />
+                                Waybill
+                            </button>
+                        </div>
+                    )}
+                    {/* On desktop, show Order ID here */}
+                    <div className='hidden md:flex flex-col items-end'>
+                        <span className='text-[10px] uppercase font-bold text-neutral-400 tracking-widest'>Order ID</span>
+                        <span className='text-sm font-bold text-neutral-800'>{order.orderId}</span>
+                    </div>
                 </div>
             </div>
 
             {/* Order Status Visualization */}
             <div className='bg-white rounded-2xl border border-neutral-100 shadow-sm p-6 md:p-8 mb-8'>
-                <div className='flex items-center justify-between mb-8'>
-                    <h2 className='text-xl font-bold text-neutral-800'>Order Journey</h2>
+                <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8'>
+                    <h2 className='text-xl font-bold text-neutral-700 whitespace-nowrap'>Order Journey</h2>
                     <div className='flex items-center gap-3'>
                         {isAdmin(user.role) ? (
                             <div className='flex items-center gap-2'>
@@ -473,6 +509,21 @@ const OrderDetails = () => {
                     orderId={order._id}
                     existingReview={existingReview}
                     onSuccess={mutateReviews}
+                />
+            )}
+
+            {downloadModal.isOpen && (
+                <DownloadPreviewModal
+                    close={() => setDownloadModal({ isOpen: false, type: null })}
+                    order={order}
+                    downloadType={downloadModal.type}
+                    onConfirm={(buyerInfo, sellerInfo, shipmentInfo) => {
+                        if (downloadModal.type === 'summary') {
+                            generateOrderSummary(order, buyerInfo, sellerInfo, shipmentInfo)
+                        } else {
+                            generateWaybill(order, buyerInfo, sellerInfo, shipmentInfo)
+                        }
+                    }}
                 />
             )}
         </div>

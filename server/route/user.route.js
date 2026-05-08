@@ -17,10 +17,13 @@ import {
     deleteAddressController,
     getAddressesController,
     getFavorites,
-    toggleFavorite
+    toggleFavorite,
+    getShopInfoController,
+    updateShopInfoController
 } from '../controllers/user.controller.js';
 
 import auth from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
 import upload from '../middleware/multer.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 
@@ -47,5 +50,7 @@ userRouter.delete('/delete-address', auth, deleteAddressController);
 userRouter.post('/toggle-favorite', auth, toggleFavorite);
 userRouter.get('/get-favorites', auth, getFavorites);
 
+userRouter.get('/get-shop-info', auth, admin, getShopInfoController);
+userRouter.put('/update-shop-info', auth, admin, updateShopInfoController);
 
 export default userRouter;

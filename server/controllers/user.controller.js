@@ -833,4 +833,67 @@ export async function getFavorites(request, response) {
             success: false
         });
     }
-}
+}
+
+// Get Shop Info (Admin only)
+export async function getShopInfoController(request, response) {
+    try {
+        const userId = request.userId;
+        const user = await UserModel.findById(userId).select('shopInfo');
+
+        if (!user) {
+            return response.status(404).json({
+                message: "User not found",
+                error: true,
+                success: false
+            });
+        }
+
+        return response.json({
+            message: "Shop info fetched",
+            success: true,
+            error: false,
+            data: user.shopInfo || {}
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+
+// Update Shop Info (Admin only)
+export async function updateShopInfoController(request, response) {
+    try {
+        const userId = request.userId;
+        const { name, phone, addressLine, city, region, barangay, sortCode } = request.body;
+
+        const updatedUser = await UserModel.findByIdAndUpdate(userId, {
+            shopInfo: {
+                name: name || "",
+                phone: phone || "",
+                addressLine: addressLine || "",
+                city: city || "",
+                region: region || "",
+                barangay: barangay || "",
+                sortCode: sortCode || ""
+            }
+        }, { new: true });
+
+        return response.json({
+            message: "Shop info updated successfully",
+            success: true,
+            error: false,
+            data: updatedUser.shopInfo
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}
+

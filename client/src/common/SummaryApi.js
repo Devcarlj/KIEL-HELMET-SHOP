@@ -212,6 +212,14 @@ const SummaryApi = {
     chatMessageStream: {
         url: '/api/chat/message/stream',
         method: 'post'
+    },
+    getShopInfo: {
+        url: '/api/user/get-shop-info',
+        method: 'get'
+    },
+    updateShopInfo: {
+        url: '/api/user/update-shop-info',
+        method: 'put'
     }
 }
 export default SummaryApi

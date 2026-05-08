@@ -389,7 +389,9 @@ export const getOrderDetailsByIdController = async (request, response) => {
         const user = await UserModel.findById(userId);
 
         // Find the order
-        const order = await OrderModel.findById(id).populate('statusHistory.updatedBy', 'name email');
+        const order = await OrderModel.findById(id)
+            .populate('userId', 'name email mobile')
+            .populate('statusHistory.updatedBy', 'name email');
 
         if (!order) {
             return response.status(404).json({

@@ -110,6 +110,16 @@ const userSchema = new mongoose.Schema({
         }
     ],
 
+    shopInfo: {
+        name: { type: String, default: "" },
+        phone: { type: String, default: "" },
+        addressLine: { type: String, default: "" },
+        city: { type: String, default: "" },
+        region: { type: String, default: "" },
+        barangay: { type: String, default: "" },
+        sortCode: { type: String, default: "" }
+    },
+
 },
     {
         timestamps: true

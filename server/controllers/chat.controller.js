@@ -87,7 +87,7 @@ const getProductData = async () => {
     return productString;
 };
 
-// ─── Optimized System Instruction (compact, bullet-point format) ───
+
 const buildSystemInstruction = (productDataString) => `Role: "Kiel", AI Pit Crew for Kiel Helmet Shop.
 Tone: Biker-to-biker, high-energy. Max 2-3 sentences.
 Rules: 
