@@ -31,9 +31,9 @@ const cartSlice = createSlice({
                     JSON.stringify(item.variations) === JSON.stringify(action.payload.variations)
             );
             if (existing) {
-                existing.quantity = action.payload.quantity;
+                existing.quantity += action.payload.quantity;
             } else {
-                state.cart.push(action.payload);
+                state.cart.push({ ...action.payload, selected: true });
             }
             localStorage.setItem('cart', JSON.stringify(state.cart));
         },
@@ -58,8 +58,29 @@ const cartSlice = createSlice({
             localStorage.removeItem('cart');
         },
 
+        removeSelectedItems: (state) => {
+            state.cart = state.cart.filter(item => item.selected === false);
+            localStorage.setItem('cart', JSON.stringify(state.cart));
+        },
+
         setCartLoading: (state, action) => {
             state.loading = action.payload;
+        },
+
+        toggleSelectItem: (state, action) => {
+            const item = state.cart.find(i => i._id === action.payload);
+            if (item) {
+                item.selected = !item.selected;
+            }
+            localStorage.setItem('cart', JSON.stringify(state.cart));
+        },
+
+        toggleSelectAll: (state, action) => {
+            const allSelected = state.cart.every(item => item.selected);
+            state.cart.forEach(item => {
+                item.selected = !allSelected;
+            });
+            localStorage.setItem('cart', JSON.stringify(state.cart));
         }
     }
 });
@@ -71,6 +92,9 @@ export const {
     removeCartItem,
     clearCart,
     setCartLoading,
+    toggleSelectItem,
+    toggleSelectAll,
+    removeSelectedItems
 } = cartSlice.actions;
 
 export default cartSlice.reducer;
@@ -84,34 +108,48 @@ export const selectCartItemCount = (state) => {
 };
 
 export const selectCartTotal = (state) => {
-    return state.cart.cart.reduce((total, item) => {
-        const product = item.productId;
-        if (!product) return total;
-        const price = product.price || 0;
-        const discount = product.discount || 0;
-        const effectivePrice = Math.round(price * (1 - discount / 100));
-        return total + (effectivePrice * item.quantity);
-    }, 0);
+    return state.cart.cart
+        .filter(item => item.selected !== false) // Handle existing items without selected property
+        .reduce((total, item) => {
+            const product = item.productId;
+            if (!product) return total;
+            const price = product.price || 0;
+            const discount = product.discount || 0;
+            const effectivePrice = Math.round(price * (1 - discount / 100));
+            return total + (effectivePrice * item.quantity);
+        }, 0);
 };
 
 export const selectCartTotalSavings = (state) => {
-    return state.cart.cart.reduce((total, item) => {
-        const product = item.productId;
-        if (!product || !(product.discount > 0)) return total;
-        const price = product.price || 0;
-        const discount = product.discount || 0;
-        const effectivePrice = Math.round(price * (1 - discount / 100));
-        const savingsPerItem = price - effectivePrice;
-        return total + (savingsPerItem * item.quantity);
-    }, 0);
+    return state.cart.cart
+        .filter(item => item.selected !== false)
+        .reduce((total, item) => {
+            const product = item.productId;
+            if (!product || !(product.discount > 0)) return total;
+            const price = product.price || 0;
+            const discount = product.discount || 0;
+            const effectivePrice = Math.round(price * (1 - discount / 100));
+            const savingsPerItem = price - effectivePrice;
+            return total + (savingsPerItem * item.quantity);
+        }, 0);
 };
 
 export const selectCartOriginalTotal = (state) => {
-    return state.cart.cart.reduce((total, item) => {
-        const product = item.productId;
-        if (!product) return total;
-        return total + ((product.price || 0) * item.quantity);
-    }, 0);
+    return state.cart.cart
+        .filter(item => item.selected !== false)
+        .reduce((total, item) => {
+            const product = item.productId;
+            if (!product) return total;
+            return total + ((product.price || 0) * item.quantity);
+        }, 0);
+};
+
+export const selectSelectedCartItems = (state) => {
+    return state.cart.cart.filter(item => item.selected !== false);
+};
+
+export const selectIsAllSelected = (state) => {
+    return state.cart.cart.length > 0 && state.cart.cart.every(item => item.selected !== false);
 };
 
 // Get quantity of a specific product in cart

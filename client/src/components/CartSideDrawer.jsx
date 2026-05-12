@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { DisplayPrice } from '../utils/DisplayPrice'
 import {
     selectCart,
@@ -10,11 +10,17 @@ import {
     selectCartItemCount,
     updateCartItemQty,
     removeCartItem,
+    toggleSelectItem,
+    toggleSelectAll,
+    selectIsAllSelected,
+    selectSelectedCartItems,
 } from '../store/cartSlice'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
+import AxiosToastError from '../utils/AxiosToastError'
 import { GrCart } from "react-icons/gr"
+
 
 import emptyCartImage from '../assets/empty_cart.png'
 
@@ -27,6 +33,8 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
     const user = useSelector(state => state.user)
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const isAllSelected = useSelector(selectIsAllSelected)
+    const selectedItems = useSelector(selectSelectedCartItems)
 
     // Prevent body scrolling when drawer is open
     useEffect(() => {
@@ -73,8 +81,9 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                 }
             }
         } catch (error) {
-            toast.error("Failed to update cart")
+            AxiosToastError(error)
         }
+
     }
 
     const handleRemoveItem = async (cartItemId) => {
@@ -106,8 +115,14 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
             navigate('/login')
             return
         }
+
+        if (selectedItems.length === 0) {
+            toast.error("Please select at least one item to checkout")
+            return
+        }
+
         onClose()
-        navigate('/checkout') // Checking if /checkout-address exists or just /checkout
+        navigate('/checkout')
         toast.success("Proceeding to checkout...")
     }
 
@@ -172,6 +187,34 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                         </div>
                     ) : (
                         <div className='space-y-3'>
+                            {/* Select All Option */}
+                            <div className='flex items-center justify-between px-1 mb-4'>
+                                <label className='flex items-center gap-2 cursor-pointer group'>
+                                    <div className='relative flex items-center justify-center'>
+                                        <input
+                                            type='checkbox'
+                                            checked={isAllSelected}
+                                            onChange={() => dispatch(toggleSelectAll())}
+                                            className='peer appearance-none w-5 h-5 border-2 border-slate-300 rounded-md checked:bg-brand-primary checked:border-brand-primary transition-all cursor-pointer'
+                                        />
+                                        <svg
+                                            className='absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            strokeWidth={3.5}
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' />
+                                        </svg>
+                                    </div>
+                                    <span className='text-xs font-black text-slate-700 uppercase tracking-widest group-hover:text-brand-primary transition-colors'>
+                                        Select All
+                                    </span>
+                                </label>
+                                <span className='text-[10px] font-black text-slate-400 uppercase tracking-tighter'>
+                                    {selectedItems.length} OF {cart.length} SELECTED
+                                </span>
+                            </div>
                             {cart.map((item) => {
                                 const product = item.productId
                                 if (!product) return null
@@ -185,10 +228,35 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                                 return (
                                     <div
                                         key={item._id}
-                                        className='flex gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors group/item'
+                                        className={`flex items-center gap-3 p-3 rounded-2xl border transition-all group/item ${item.selected !== false
+                                            ? 'border-brand-primary/20 bg-white shadow-sm'
+                                            : 'border-slate-100 bg-slate-50/50 grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
+                                            }`}
                                     >
+                                        {/* Selection Checkbox */}
+                                        <div className='relative flex items-center justify-center shrink-0'>
+                                            <input
+                                                type='checkbox'
+                                                checked={item.selected !== false}
+                                                onChange={() => dispatch(toggleSelectItem(item._id))}
+                                                className='peer appearance-none w-5 h-5 border-2 border-slate-300 rounded-md checked:bg-brand-primary checked:border-brand-primary transition-all cursor-pointer'
+                                            />
+                                            <svg
+                                                className='absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none'
+                                                fill='none'
+                                                stroke='currentColor'
+                                                strokeWidth={3.5}
+                                                viewBox='0 0 24 24'
+                                            >
+                                                <path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' />
+                                            </svg>
+                                        </div>
                                         {/* Product Image */}
-                                        <div className='w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden'>
+                                        <Link
+                                            to={`/product/${product._id}`}
+                                            onClick={onClose}
+                                            className='w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden hover:border-brand-primary transition-colors'
+                                        >
                                             {productImg ? (
                                                 <img
                                                     src={productImg}
@@ -198,14 +266,20 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                                             ) : (
                                                 <div className='text-[10px] text-slate-400 font-medium'>No img</div>
                                             )}
-                                        </div>
+                                        </Link>
 
                                         {/* Product Info */}
                                         <div className='flex-1 min-w-0 flex flex-col justify-between'>
                                             <div>
-                                                <h4 className='text-sm font-bold text-slate-800 line-clamp-1 leading-tight'>
-                                                    {product.name}
-                                                </h4>
+                                                <Link
+                                                    to={`/product/${product._id}`}
+                                                    onClick={onClose}
+                                                    className='block hover:text-brand-primary transition-colors'
+                                                >
+                                                    <h4 className='text-sm font-bold text-slate-800 line-clamp-1 leading-tight'>
+                                                        {product.name}
+                                                    </h4>
+                                                </Link>
                                                 <div className='flex items-center gap-2 mt-0.5'>
                                                     <span className='text-xs font-bold text-slate-900'>
                                                         {DisplayPrice(effectivePrice)}
@@ -216,14 +290,25 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                {/* Selected Variation */}
-                                                {item.variation?.value && (
+                                                {/* Selected Variations */}
+                                                {item.variations && item.variations.length > 0 && (
+                                                    <div className='flex flex-wrap items-center gap-1.5 mt-1'>
+                                                        {item.variations.map((v, i) => (
+                                                            <span key={i} className='px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-wider'>
+                                                                {v.name}: {v.value}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {/* Fallback for single variation field if it exists */}
+                                                {!item.variations && item.variation?.value && (
                                                     <div className='flex items-center gap-1.5 mt-1'>
                                                         <span className='px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-wider'>
                                                             {item.variation.name}: {item.variation.value}
                                                         </span>
                                                     </div>
                                                 )}
+
                                             </div>
 
                                             <div className='flex items-center justify-between mt-2'>
@@ -247,21 +332,40 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                                                             )}
                                                         </svg>
                                                     </button>
-
+ 
                                                     <span className='px-1 text-sm font-black text-slate-800 min-w-[24px] text-center select-none'>
                                                         {item.quantity}
                                                     </span>
+ 
+                                                    {(() => {
+                                                        const availableStock = product.variationStocks?.length > 0
+                                                            ? product.variationStocks.find(vs =>
+                                                                Object.entries(vs.combinations).every(([name, value]) =>
+                                                                    item.variations?.find(v => v.name === name && v.value === value)
+                                                                )
+                                                            )?.stock ?? 0
+                                                            : product.stock;
 
-                                                    <button
-                                                        onClick={() => handleUpdateQty(item._id, item.quantity + 1)}
-                                                        className='w-8 h-full flex items-center justify-center bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary hover:text-brand-cream rounded-lg transition-all duration-200 active:scale-90'
-                                                        title='Increase quantity'
-                                                    >
-                                                        <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
-                                                            <path d='M12 5v14M5 12h14' />
-                                                        </svg>
-                                                    </button>
+                                                        const isLimitReached = item.quantity >= availableStock;
+
+                                                        return (
+                                                            <button
+                                                                onClick={() => !isLimitReached && handleUpdateQty(item._id, item.quantity + 1)}
+                                                                disabled={isLimitReached}
+                                                                className={`w-8 h-full flex items-center justify-center rounded-lg transition-all duration-200 ${isLimitReached
+                                                                    ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
+                                                                    : 'bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary hover:text-brand-cream'
+                                                                    } active:scale-90`}
+                                                                title={isLimitReached ? 'Stock limit reached' : 'Increase quantity'}
+                                                            >
+                                                                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' strokeWidth={3} viewBox='0 0 24 24'>
+                                                                    <path d='M12 5v14M5 12h14' />
+                                                                </svg>
+                                                            </button>
+                                                        )
+                                                    })()}
                                                 </div>
+
 
                                                 {/* Line Total */}
                                                 <span className='text-sm font-black text-slate-900'>
@@ -315,7 +419,11 @@ const CartSideDrawer = ({ isOpen, onClose }) => {
                         {/* CTA Button */}
                         <button
                             onClick={handleProceedToPayment}
-                            className='w-full py-3.5 bg-brand-primary hover:bg-brand-primary-dark text-brand-cream font-black text-sm uppercase tracking-[0.15em] rounded-2xl transition-all duration-300 shadow-lg shadow-brand-primary/10 active:scale-[0.98] flex items-center justify-center gap-2'
+                            disabled={selectedItems.length === 0}
+                            className={`w-full py-3.5 font-black text-sm uppercase tracking-[0.15em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 ${selectedItems.length > 0
+                                ? 'bg-brand-primary hover:bg-brand-primary-dark text-brand-cream shadow-lg shadow-brand-primary/10 active:scale-[0.98]'
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                }`}
                         >
                             <span>Proceed to Payment</span>
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' strokeWidth={2.5} viewBox='0 0 24 24'>

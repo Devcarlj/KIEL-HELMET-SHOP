@@ -9,7 +9,7 @@ import isAdmin from '../utils/isAdmin'
 import toast from 'react-hot-toast'
 import AxiosToastError from '../utils/AxiosToastError'
 import ReviewModal from '../components/ReviewModal'
-import { addCartItem } from '../store/cartSlice'
+import { addCartItem, selectProductQtyInCart } from '../store/cartSlice'
 import { FaStar, FaEdit, FaTrash, FaShoppingBag, FaBolt, FaArrowRight, FaChevronLeft, FaShareAlt, FaEllipsisH, FaCommentDots, FaHeart, FaRegHeart } from 'react-icons/fa'
 import { setFavorites } from '../store/userSlice'
 import { IoMdAdd, IoIosClose } from "react-icons/io";
@@ -376,7 +376,20 @@ const DisplayProductPage = () => {
     setBuyingNow(true)
     const variationsArr = Object.entries(selectedVariations).map(([name, value]) => ({ name, value }))
 
+    // Check if adding this would exceed stock (considering what's already in cart)
+    const cartItemData = dispatch((state, getState) => selectProductQtyInCart(product._id, variationsArr)(getState()));
+    const currentInCart = cartItemData?.qty || 0;
+    const requestedQty = drawerQty;
+
+
+    if (currentInCart + requestedQty > currentVariationStock) {
+      toast.error(`Only ${currentVariationStock} units available. You already have ${currentInCart} in cart.`);
+      setBuyingNow(false);
+      return;
+    }
+
     try {
+
       if (!user?._id) {
         // Guest Buy Now
         const guestCartItem = {
@@ -433,22 +446,37 @@ const DisplayProductPage = () => {
     setDrawerLoading(true)
     const variationsArr = Object.entries(selectedVariations).map(([name, value]) => ({ name, value }))
     
+    // Check if adding this would exceed stock (considering what's already in cart)
+    const cartItemData = dispatch((state, getState) => selectProductQtyInCart(product._id, variationsArr)(getState()));
+    const currentInCart = cartItemData?.qty || 0;
+    const requestedQty = drawerQty;
+
+
+    if (currentInCart + requestedQty > currentVariationStock) {
+      toast.error(`Only ${currentVariationStock} units available. You already have ${currentInCart} in cart.`);
+      setDrawerLoading(false);
+      return;
+    }
+
     try {
+
       if (!user?._id) {
         const guestCartItem = {
           _id: 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
           productId: product,
-          quantity: isMobile ? drawerQty : 1,
+          quantity: drawerQty,
           userId: null,
           variations: variationsArr
         }
+
         dispatch(addCartItem(guestCartItem))
         toast.success("Added to cart")
       } else {
         const response = await Axios({
           ...SummaryApi.addToCart,
-          data: { productId: product._id, variations: variationsArr, quantity: isMobile ? drawerQty : 1 }
+          data: { productId: product._id, variations: variationsArr, quantity: drawerQty }
         })
+
         if (response.data.success) {
           dispatch(addCartItem({
             _id: response.data.data._id,
@@ -480,7 +508,18 @@ const DisplayProductPage = () => {
     setDrawerLoading(true)
     const variationsArr = Object.entries(selectedVariations).map(([name, value]) => ({ name, value }))
 
+    // Check if adding this would exceed stock (considering what's already in cart)
+    const cartItemData = dispatch((state, getState) => selectProductQtyInCart(product._id, variationsArr)(getState()));
+    const currentInCart = cartItemData?.qty || 0;
+
+    if (currentInCart + drawerQty > currentVariationStock) {
+      toast.error(`Only ${currentVariationStock} units available. You already have ${currentInCart} in cart.`);
+      setDrawerLoading(false);
+      return;
+    }
+
     try {
+
       if (!user?._id) {
         const guestCartItem = {
           _id: 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -788,6 +827,26 @@ const DisplayProductPage = () => {
                 >
                   <HiOutlineChatAlt2 size={24} className='text-primary group-active:scale-90 transition-transform md:w-7 md:h-7' />
                 </a>
+
+                {/* Desktop Quantity Selector */}
+                <div className='hidden md:flex items-center bg-slate-50 rounded-xl p-1 border border-slate-200 h-[60px] shrink-0'>
+                  <button
+                    onClick={() => setDrawerQty(prev => Math.max(1, prev - 1))}
+                    disabled={drawerQty <= 1}
+                    className={`w-10 h-full flex items-center justify-center transition-all active:scale-90 ${drawerQty <= 1 ? 'text-slate-300' : 'text-slate-500 hover:text-primary'}`}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </button>
+                  <span className='w-12 text-center text-lg font-black text-slate-800 select-none'>{drawerQty}</span>
+                  <button
+                    onClick={() => setDrawerQty(prev => Math.min(currentVariationStock || 999, prev + 1))}
+                    disabled={drawerQty >= currentVariationStock}
+                    className={`w-10 h-full flex items-center justify-center transition-all active:scale-90 ${drawerQty >= currentVariationStock ? 'text-slate-300' : 'text-primary hover:text-black'}`}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </button>
+                </div>
+
 
                 <button
                   onClick={handleAddToCartUnified}
@@ -1122,11 +1181,13 @@ const DisplayProductPage = () => {
                 </button>
                 <span className='w-10 text-center text-xs font-black text-slate-800'>{drawerQty}</span>
                 <button
-                  onClick={() => setDrawerQty(prev => prev + 1)}
-                  className='w-9 h-9 flex items-center justify-center text-primary active:scale-90 transition-transform'
+                  onClick={() => setDrawerQty(prev => Math.min(currentVariationStock, prev + 1))}
+                  disabled={drawerQty >= currentVariationStock}
+                  className={`w-9 h-9 flex items-center justify-center active:scale-90 transition-transform ${drawerQty >= currentVariationStock ? 'text-slate-300 cursor-not-allowed' : 'text-primary'}`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
+
               </div>
             </div>
 

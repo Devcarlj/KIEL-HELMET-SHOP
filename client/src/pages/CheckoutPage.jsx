@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectCart, selectCartTotal, selectCartTotalSavings, selectCartOriginalTotal, clearCart } from '../store/cartSlice';
+import { selectSelectedCartItems, selectCartTotal, selectCartTotalSavings, selectCartOriginalTotal, removeSelectedItems } from '../store/cartSlice';
 import { setUserDetails, selectUser, deleteAddressAction } from '../store/userSlice';
 import { DisplayPrice } from '../utils/DisplayPrice';
 import { MdOutlineLocationOn, MdPayment, MdAddCircleOutline, MdCheckCircle, MdEdit, MdDeleteOutline, MdLock } from "react-icons/md";
 import { IoArrowBackOutline } from "react-icons/io5";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import toast from 'react-hot-toast';
@@ -90,7 +90,7 @@ const StripePaymentForm = ({ onPaymentSuccess, onPaymentError, placingOrder, set
 
 // ─── Main Checkout Page ──────────────────────────────────────────────────────
 const CheckoutPage = () => {
-  const cartItems = useSelector(selectCart);
+  const cartItems = useSelector(selectSelectedCartItems);
   const cartTotal = useSelector(selectCartTotal);
   const cartSavings = useSelector(selectCartTotalSavings);
   const user = useSelector(selectUser);
@@ -133,6 +133,14 @@ const CheckoutPage = () => {
       createPaymentIntent();
     }
   }, [paymentMethod, cartItems.length]);
+
+  // Redirect if no items selected
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      navigate('/');
+      toast.error("No items selected for checkout");
+    }
+  }, [cartItems.length, navigate]);
 
   const createPaymentIntent = async () => {
     setLoadingPaymentIntent(true);
@@ -292,7 +300,7 @@ const CheckoutPage = () => {
 
       if (response.data.success) {
         toast.success('Salamat! Order placed successfully.');
-        dispatch(clearCart());
+        dispatch(removeSelectedItems());
         navigate('/order-success', { state: { order: response.data.data } });
       }
     } catch (error) {
@@ -617,11 +625,13 @@ const CheckoutPage = () => {
                     const effectivePrice = Math.round((product?.price || 0) * (1 - (product?.discount || 0) / 100));
                     return (
                       <div key={item._id} className="flex gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                        <div className="w-12 h-12 bg-white rounded-lg flex-shrink-0 border border-slate-50 flex items-center justify-center p-1">
+                        <Link to={`/product/${product?._id}`} className="w-12 h-12 bg-white rounded-lg flex-shrink-0 border border-slate-50 flex items-center justify-center p-1 hover:border-primary transition-colors">
                           <img src={Array.isArray(product?.image) ? product.image[0] : product?.image} alt={product?.name} loading="lazy" className="w-full h-full object-scale-down" />
-                        </div>
+                        </Link>
                         <div className="flex-1 min-w-0 py-0.5">
-                          <p className="text-[10px] font-black text-slate-800 line-clamp-1 mb-0.5 uppercase tracking-tighter">{product?.name}</p>
+                          <Link to={`/product/${product?._id}`} className="hover:text-primary transition-colors">
+                            <p className="text-[10px] font-black text-slate-800 line-clamp-1 mb-0.5 uppercase tracking-tighter">{product?.name}</p>
+                          </Link>
                           {/* Selected Variation */}
                           {item.variations?.length > 0 && (
                             <div className="flex flex-wrap items-center gap-1.5 mb-1">
