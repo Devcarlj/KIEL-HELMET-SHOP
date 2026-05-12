@@ -20,6 +20,7 @@ import { MdAdminPanelSettings } from 'react-icons/md'
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import defaultUserAvatar from '../assets/default_user_profiles.png'
+import AdminActionModal from '../components/AdminActionModal'
 
 // ─── Reusable Toggle Component ────────────────────────────────────────────────
 const EmailToggle = ({ label, description, icon, checked, onChange, loading }) => (
@@ -108,6 +109,13 @@ const SuperAdminSettings = () => {
     const [previewLoading, setPreviewLoading] = useState(false)
     const [activeTab, setActiveTab] = useState('admins')
 
+    // ── Modal State
+    const [modalConfig, setModalConfig] = useState({
+        show: false,
+        type: 'promote', // 'promote' or 'demote'
+        user: null
+    })
+
     // ── Email Settings State
     const [emailSettings, setEmailSettings] = useState({
         registration: true,
@@ -179,22 +187,34 @@ const SuperAdminSettings = () => {
         }
     }
 
-    // ── Add Admin ────────────────────────────────────────────────────────────
-    const handleAddAdmin = async (e) => {
+    // ── Add Admin (Trigger Modal) ─────────────────────────────────────────────
+    const handleAddAdminClick = (e) => {
         e.preventDefault()
-        if (!addEmail.trim()) return
+        if (!addEmail.trim() || !previewUser) return
+        
+        setModalConfig({
+            show: true,
+            type: 'promote',
+            user: previewUser
+        })
+    }
+
+    // ── Actual Add Admin Logic ───────────────────────────────────────────────
+    const handleConfirmAddAdmin = async () => {
+        if (!modalConfig.user) return
 
         setAddLoading(true)
         try {
             const res = await Axios({
                 ...SummaryApi.addAdmin,
-                data: { email: addEmail.trim() }
+                data: { email: modalConfig.user.email }
             })
             if (res.data.success) {
                 toast.success(res.data.message)
                 setAddEmail('')
                 setPreviewUser(null)
                 fetchAdmins()
+                setModalConfig({ show: false, type: 'promote', user: null })
             } else {
                 toast.error(res.data.message)
             }
@@ -206,19 +226,47 @@ const SuperAdminSettings = () => {
         }
     }
 
-    // ── Remove Admin ─────────────────────────────────────────────────────────
-    const handleRemoveAdmin = async (email) => {
-        if (!window.confirm(`Remove admin privileges from ${email}?`)) return
+    // ── Remove Admin (Trigger Modal) ──────────────────────────────────────────
+    const handleRemoveAdminClick = async (emailOrUser) => {
+        let userToDemote = null
+        
+        if (typeof emailOrUser === 'string') {
+            // Manual input email - try to find in current admins or fetch
+            const existing = admins.find(a => a.email === emailOrUser)
+            if (existing) {
+                userToDemote = existing
+            } else {
+                // Not in current list, maybe fetch preview? 
+                // For simplicity, if not in list, we can just use the email as name/email
+                userToDemote = { email: emailOrUser, name: emailOrUser }
+            }
+        } else {
+            // Full user object from AdminCard
+            userToDemote = emailOrUser
+        }
+
+        setModalConfig({
+            show: true,
+            type: 'demote',
+            user: userToDemote
+        })
+    }
+
+    // ── Actual Remove Admin Logic ─────────────────────────────────────────────
+    const handleConfirmRemoveAdmin = async () => {
+        if (!modalConfig.user) return
+        
         setRemoveLoading(true)
         try {
             const res = await Axios({
                 ...SummaryApi.removeAdmin,
-                data: { email }
+                data: { email: modalConfig.user.email }
             })
             if (res.data.success) {
                 toast.success(res.data.message)
                 setRemoveEmail('')
                 fetchAdmins()
+                setModalConfig({ show: false, type: 'demote', user: null })
             } else {
                 toast.error(res.data.message)
             }
@@ -345,7 +393,7 @@ const SuperAdminSettings = () => {
                             <h2 className="font-bold text-slate-800 text-sm">Promote User to Admin</h2>
                         </div>
                         <div className="p-5">
-                            <form onSubmit={handleAddAdmin} className="space-y-3">
+                            <form onSubmit={handleAddAdminClick} className="space-y-3">
                                 <div className="relative">
                                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                                     <input
@@ -436,7 +484,7 @@ const SuperAdminSettings = () => {
                                         <AdminCard
                                             key={admin._id}
                                             admin={admin}
-                                            onRemove={handleRemoveAdmin}
+                                            onRemove={() => handleRemoveAdminClick(admin)}
                                             isRemoving={removeLoading}
                                         />
                                     ))}
@@ -470,7 +518,7 @@ const SuperAdminSettings = () => {
                                     />
                                 </div>
                                 <button
-                                    onClick={() => removeEmail.trim() && handleRemoveAdmin(removeEmail.trim())}
+                                    onClick={() => removeEmail.trim() && handleRemoveAdminClick(removeEmail.trim())}
                                     disabled={removeLoading || !removeEmail.trim()}
                                     className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm rounded-xl shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
@@ -529,6 +577,17 @@ const SuperAdminSettings = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Admin Action Modal */}
+            {modalConfig.show && (
+                <AdminActionModal
+                    type={modalConfig.type}
+                    user={modalConfig.user}
+                    loading={modalConfig.type === 'promote' ? addLoading : removeLoading}
+                    onConfirm={modalConfig.type === 'promote' ? handleConfirmAddAdmin : handleConfirmRemoveAdmin}
+                    onClose={() => setModalConfig({ ...modalConfig, show: false })}
+                />
             )}
         </div>
     )
