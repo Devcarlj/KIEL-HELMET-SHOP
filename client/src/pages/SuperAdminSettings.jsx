@@ -21,6 +21,8 @@ import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import defaultUserAvatar from '../assets/default_user_profiles.png'
 import AdminActionModal from '../components/AdminActionModal'
+import CustomerManagement from '../components/CustomerManagement'
+import isSuperAdmin from '../utils/isSuperAdmin'
 
 // ─── Reusable Toggle Component ────────────────────────────────────────────────
 const EmailToggle = ({ label, description, icon, checked, onChange, loading }) => (
@@ -107,7 +109,7 @@ const SuperAdminSettings = () => {
     const [removeLoading, setRemoveLoading] = useState(false)
     const [previewUser, setPreviewUser] = useState(null)
     const [previewLoading, setPreviewLoading] = useState(false)
-    const [activeTab, setActiveTab] = useState('admins')
+    const [activeTab, setActiveTab] = useState(isSuperAdmin(user.role) ? 'admins' : 'customers')
 
     // ── Modal State
     const [modalConfig, setModalConfig] = useState({
@@ -347,31 +349,40 @@ const SuperAdminSettings = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow">
+                <div className={`p-2 rounded-xl text-white shadow ${isSuperAdmin(user.role) ? 'bg-gradient-to-br from-purple-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
                     <FiShield size={20} />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-slate-800">Super Admin Settings</h1>
-                    <p className="text-sm text-slate-500">Manage admins and system-wide email notifications</p>
+                    <h1 className="text-xl font-bold text-slate-800">{isSuperAdmin(user.role) ? 'Super Admin Settings' : 'Settings'}</h1>
+                    <p className="text-sm text-slate-500">
+                        {isSuperAdmin(user.role)
+                            ? 'Manage admins, customers, and system-wide email notifications'
+                            : 'Manage customer profiles for support purposes'}
+                    </p>
                 </div>
             </div>
 
             {/* Logged in as badge */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 w-fit">
-                <FiShield size={14} className="text-purple-600" />
-                <span className="text-xs font-semibold text-purple-700">Logged in as Super Admin: {user.email}</span>
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg w-fit ${isSuperAdmin(user.role) ? 'bg-purple-50 border border-purple-200' : 'bg-blue-50 border border-blue-200'}`}>
+                <FiShield size={14} className={isSuperAdmin(user.role) ? 'text-purple-600' : 'text-blue-600'} />
+                <span className={`text-xs font-semibold ${isSuperAdmin(user.role) ? 'text-purple-700' : 'text-blue-700'}`}>
+                    Logged in as {isSuperAdmin(user.role) ? 'Super Admin' : 'Admin'}: {user.email}
+                </span>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-slate-200">
+            <div className="flex gap-2 border-b border-slate-200 overflow-x-auto">
                 {[
-                    { id: 'admins', label: 'Admin Management', icon: <FiUsers size={14} /> },
-                    { id: 'email', label: 'Email Notifications', icon: <FiMail size={14} /> }
+                    { id: 'customers', label: 'Customer Management', icon: <FiUsers size={14} /> },
+                    ...(isSuperAdmin(user.role) ? [
+                        { id: 'admins', label: 'Admin Management', icon: <FiUsers size={14} /> },
+                        { id: 'email',  label: 'Email Notifications', icon: <FiMail size={14} /> }
+                    ] : [])
                 ].map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all -mb-px ${
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
                             activeTab === tab.id
                                 ? 'border-purple-500 text-purple-700'
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -532,6 +543,11 @@ const SuperAdminSettings = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ── CUSTOMER MANAGEMENT TAB ── */}
+            {activeTab === 'customers' && (
+                <CustomerManagement />
             )}
 
             {/* ── EMAIL NOTIFICATIONS TAB ── */}

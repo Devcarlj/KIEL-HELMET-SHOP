@@ -184,7 +184,7 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
           </Link>
         )}
 
-        {isSuperAdmin(user.role) && (
+        {isAdmin(user.role) && (
           <Link
             to="/dashboard/superadmin-settings"
             onClick={handleLinkClick}

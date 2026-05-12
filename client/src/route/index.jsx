@@ -165,7 +165,7 @@ const router = createBrowserRouter([
           },
           {
             path: "superadmin-settings",
-            element: <SuspenseWrap><SuperAdminPermission><SuperAdminSettings /></SuperAdminPermission></SuspenseWrap>
+            element: <SuspenseWrap><AdminPermission><SuperAdminSettings /></AdminPermission></SuspenseWrap>
           }
         ]
       }

@@ -246,6 +246,24 @@ const SummaryApi = {
     checkUserByEmail: {
         url: '/api/superadmin/check-user',
         method: 'post'
+    },
+
+    // ── Customer Management ──────────────────────────────────────────
+    getAllCustomers: {
+        url: '/api/superadmin/customers',
+        method: 'get'
+    },
+    getCustomerById: {
+        url: '/api/superadmin/customers',  // + /:id
+        method: 'get'
+    },
+    updateCustomer: {
+        url: '/api/superadmin/customers',  // + /:id
+        method: 'put'
+    },
+    deleteCustomer: {
+        url: '/api/superadmin/customers',  // + /:id
+        method: 'delete'
     }
 }
 export default SummaryApi
