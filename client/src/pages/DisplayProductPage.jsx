@@ -707,6 +707,11 @@ const DisplayProductPage = () => {
 
                   {/* Dynamic Badges Row */}
                   <div className='flex flex-wrap gap-2 mt-1 md:mt-1 items-center'>
+                    {totalStock <= 0 && (
+                      <div className='px-2 py-0.5 md:px-2 md:py-0.5 border border-red-500 text-red-500 text-[9px] md:text-[10px] font-black rounded-sm md:rounded-md flex items-center bg-red-50 uppercase tracking-wider'>
+                        Out of Stock
+                      </div>
+                    )}
                     {(product.badges || []).map((badge, index) => (
                       <div key={index} className='relative px-2 py-0.5 md:px-2 md:py-0.5 border border-primary text-primary text-[9px] md:text-[10px] font-black rounded-sm md:rounded-md flex items-center gap-1 bg-primary/5 uppercase tracking-wider group'>
                         {badge}

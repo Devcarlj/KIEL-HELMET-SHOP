@@ -17,6 +17,7 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const [unseenOrders, setUnseenOrders] = React.useState(0)
+  const [lowStockCount, setLowStockCount] = React.useState(0)
 
   const handleLogout = () => {
     dispatch(logout())
@@ -56,6 +57,13 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
         })
         if (response.data.success) {
           setUnseenOrders(response.data.data.count)
+        }
+        
+        const lowStockRes = await Axios({
+          ...SummaryApi.getLowStockCount
+        })
+        if (lowStockRes.data.success) {
+          setLowStockCount(lowStockRes.data.data.count)
         }
       }
     } catch (error) {
@@ -150,7 +158,14 @@ const UserMenu = ({ close, isSidebarMenu = false }) => {
             onClick={handleLinkClick}
             className={getLinkClass("/dashboard/products")}
           >
-            Products
+            <div className='flex items-center gap-2'>
+              Products
+              {lowStockCount > 0 && (
+                <span className='flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-sm' title="Low Stock Products">
+                  {lowStockCount > 9 ? '9+' : lowStockCount}
+                </span>
+              )}
+            </div>
             <HiOutlineExternalLink className={`transition-opacity ${isSidebarMenu && location.pathname === '/dashboard/products' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </Link>
         )}

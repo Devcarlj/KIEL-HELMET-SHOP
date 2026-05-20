@@ -197,3 +197,27 @@ export const getProductsByCategoryController = async (request, response) => {
         })
     }
 }
+
+export const getLowStockCountController = async (request, response) => {
+    try {
+        const products = await ProductModel.find({
+            $or: [
+                { stock: { $lte: 10 } },
+                { 'variationStocks.stock': { $lte: 10 } }
+            ]
+        })
+
+        return response.json({
+            message: "Low stock count fetched successfully",
+            data: { count: products.length },
+            error: false,
+            success: true
+        })
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        })
+    }
+}

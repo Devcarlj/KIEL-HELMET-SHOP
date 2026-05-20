@@ -109,6 +109,10 @@ const SummaryApi = {
         url: '/api/product/get-products-by-category',
         method: 'post'
     },
+    getLowStockCount: {
+        url: '/api/product/low-stock-count',
+        method: 'get'
+    },
     addToCart: {
         url: '/api/cart/add',
         method: 'post'

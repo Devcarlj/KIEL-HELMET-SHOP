@@ -49,6 +49,9 @@ const CardProduct = ({ data, isFavoritePage = false }) => {
         }
     }
     const productImg = Array.isArray(data.image) ? data.image[0] : (data.image || "")
+    const totalStock = (!data.variationStocks || data.variationStocks.length === 0) 
+        ? Number(data.stock) || 0 
+        : data.variationStocks.reduce((sum, vs) => sum + Number(vs.stock), 0);
 
     return (
         <>
@@ -74,7 +77,14 @@ const CardProduct = ({ data, isFavoritePage = false }) => {
                             {data.discount}% {isFavoritePage ? '' : 'OFF'}
                         </div>
                     ) : (
-                        <div></div>
+                        totalStock <= 0 ? (
+                            <div className={`bg-slate-800/90 backdrop-blur-md text-white font-black rounded-full shadow-lg pointer-events-auto ${isFavoritePage 
+                                ? 'text-[8px] md:text-[10px] px-2 py-0.5 md:px-3 md:py-1.5' 
+                                : 'text-[10px] px-3 py-1.5'
+                            }`}>
+                                OUT OF STOCK
+                            </div>
+                        ) : <div></div>
                     )}
 
                     <button

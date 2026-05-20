@@ -33,6 +33,7 @@ const AdminOrders = lazy(() => import('../pages/AdminOrders.jsx'));
 const OrderDetails = lazy(() => import('../pages/OrderDetails.jsx'));
 const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy.jsx'));
 const TermsOfService = lazy(() => import('../pages/TermsOfService.jsx'));
+const AboutUs = lazy(() => import('../pages/AboutUs.jsx'));
 const FavoritePage = lazy(() => import('../pages/FavoritePage.jsx'));
 
 
@@ -117,6 +118,10 @@ const router = createBrowserRouter([
       {
         path: "terms-of-service",
         element: <SuspenseWrap><TermsOfService /></SuspenseWrap>
+      },
+      {
+        path: "about-us",
+        element: <SuspenseWrap><AboutUs /></SuspenseWrap>
       },
       {
         path: "dashboard",

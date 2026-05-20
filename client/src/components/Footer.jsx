@@ -25,8 +25,8 @@ const Footer = () => {
                         <ul className='flex flex-col gap-3 text-sm'>
                             <li><Link to="/" className='hover:text-brand-secondary transition-colors'>Home</Link></li>
                             <li><Link to="/search" className='hover:text-brand-secondary transition-colors'>Product Search</Link></li>
-                            <li><Link to="/category/67d16f86c1be272c72688005" className='hover:text-brand-secondary transition-colors'>All Helmets</Link></li>
-                            <li><Link to="/search" className='hover:text-brand-secondary transition-colors'>New Arrivals</Link></li>
+                            <li><Link to="/category/69a86c0aa4e4766463e4a493" className='hover:text-brand-secondary transition-colors'>All Helmets</Link></li>
+                            <li><Link to="/about-us" className='hover:text-brand-secondary transition-colors'>About Us</Link></li>
                         </ul>
                     </div>
 
@@ -65,6 +65,7 @@ const Footer = () => {
                     </div>
                     <div className='flex items-center gap-6'>
                         <div className='hidden md:flex gap-6 uppercase tracking-wider'>
+                            <Link to="/about-us" className='hover:text-brand-secondary transition-colors'>About Us</Link>
                             <Link to="/privacy-policy" className='hover:text-brand-secondary transition-colors'>Privacy Policy</Link>
                             <Link to="/terms-of-service" className='hover:text-brand-secondary transition-colors'>Terms of Use</Link>
                         </div>
