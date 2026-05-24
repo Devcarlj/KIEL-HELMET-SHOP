@@ -1,8 +1,25 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
+import { Navigate, Outlet } from 'react-router-dom'
 import UserMenu from '../components/UserMenu.jsx'
-import { Outlet } from 'react-router-dom'
 
 const Dashboard = () => {
+  const user = useSelector((state) => state.user)
+
+  // ⏳ Wait for user data to finish loading
+  if (user.loading) {
+    return (
+      <div className='flex items-center justify-center min-h-[70vh]'>
+        <div className='w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin'></div>
+      </div>
+    )
+  }
+
+  // 🔒 Redirect to login if user is not authenticated
+  if (!user?._id) {
+    return <Navigate to="/login" replace />
+  }
+
   return (
     // 1. Changed to a light slate background to make the content "pop"
     <section className='bg-slate-50 min-h-[calc(100vh-96px)]'>

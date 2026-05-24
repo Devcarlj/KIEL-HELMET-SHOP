@@ -196,6 +196,13 @@ const Login = () => {
                         >
                             {loading ? "Logging in..." : "LOG IN"}
                         </button>
+
+                        <p className='text-xs text-center text-brand-text/60 font-medium mt-1 leading-relaxed'>
+                            By logging in, you agree to our{' '}
+                            <Link to="/terms-of-service" target="_blank" rel="noopener noreferrer" className='text-brand-secondary hover:text-brand-primary transition-colors font-bold'>Terms of Service</Link>{' '}
+                            and{' '}
+                            <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className='text-brand-secondary hover:text-brand-primary transition-colors font-bold'>Privacy Policy</Link>.
+                        </p>
                     </form>
 
                     {/* REGISTER REDIRECT */}

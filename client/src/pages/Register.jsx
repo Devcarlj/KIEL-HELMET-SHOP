@@ -21,6 +21,7 @@ const Register = () => {
     const [showPassword, SetShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [touched, setTouched] = useState({ email: false });
+    const [acceptTerms, setAcceptTerms] = useState(false);
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -29,7 +30,7 @@ const Register = () => {
         setData((preve) => ({ ...preve, [name]: value }))
     }
 
-    const validValue = Object.values(data).every(el => el) && validateEmail(data.email) && (data.password === data.confirmPassword);
+    const validValue = Object.values(data).every(el => el) && validateEmail(data.email) && (data.password === data.confirmPassword) && acceptTerms;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,6 +52,7 @@ const Register = () => {
             if (response.data.success) {
                 toast.success(response.data.message);
                 setData({ name: "", email: "", password: "", confirmPassword: "" });
+                setAcceptTerms(false);
                 navigate("/check-email");
             }
 
@@ -134,6 +136,24 @@ const Register = () => {
                                     {showConfirmPassword ? <FaRegEye size={20} /> : <FaRegEyeSlash size={20} />}
                                 </button>
                             </div>
+                        </div>
+
+                        {/* TERMS AND PRIVACY CHECKBOX */}
+                        <div className='flex items-start gap-3 ml-1 mt-1'>
+                            <input
+                                type="checkbox"
+                                id="acceptTerms"
+                                name="acceptTerms"
+                                checked={acceptTerms}
+                                onChange={(e) => setAcceptTerms(e.target.checked)}
+                                className='w-4 h-4 mt-0.5 accent-brand-primary border-brand-cream-dark rounded focus:ring-brand-primary/20 cursor-pointer'
+                            />
+                            <label htmlFor="acceptTerms" className='text-xs text-brand-text/70 font-medium leading-normal cursor-pointer select-none'>
+                                I agree to the{' '}
+                                <Link to="/terms-of-service" target="_blank" rel="noopener noreferrer" className='text-brand-secondary hover:text-brand-primary transition-colors font-bold'>Terms of Service</Link>{' '}
+                                and{' '}
+                                <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className='text-brand-secondary hover:text-brand-primary transition-colors font-bold'>Privacy Policy</Link>.
+                            </label>
                         </div>
 
                         {/* SUBMIT BUTTON */}
