@@ -3,27 +3,113 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { MdCheckCircle, MdLocalShipping, MdShoppingBag, MdReceipt, MdHome } from 'react-icons/md';
 import { IoSparkles } from 'react-icons/io5';
 import { DisplayPrice } from '../utils/DisplayPrice';
+import { useDispatch } from 'react-redux';
+import { removeSelectedItems } from '../store/cartSlice';
+import Axios from '../utils/Axios';
+import SummaryApi from '../common/SummaryApi';
+import toast from 'react-hot-toast';
 
 const OrderSuccessPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const order = location.state?.order;
+    const dispatch = useDispatch();
+    const [order, setOrder] = useState(location.state?.order || null);
+    const [loading, setLoading] = useState(!location.state?.order);
     const [showContent, setShowContent] = useState(false);
     const [showConfetti, setShowConfetti] = useState(true);
 
     useEffect(() => {
-        if (!order) {
+        const handleOrderInitialization = async () => {
+            if (order) {
+                setLoading(false);
+                setShowContent(true);
+                return;
+            }
+
+            // Extract query parameters (for Stripe redirect)
+            const searchParams = new URLSearchParams(location.search);
+            const paymentIntentId = searchParams.get('payment_intent');
+            const redirectStatus = searchParams.get('redirect_status');
+
+            try {
+                if (paymentIntentId && redirectStatus === 'succeeded') {
+                    // Try to place the order if we have the pending payload in sessionStorage
+                    const pendingPayloadStr = sessionStorage.getItem('pendingOrderPayload');
+                    if (pendingPayloadStr) {
+                        const payload = JSON.parse(pendingPayloadStr);
+                        payload.paymentId = paymentIntentId;
+                        payload.paymentStatus = 'paid';
+
+                        const response = await Axios({
+                            ...SummaryApi.placeOrder,
+                            data: payload
+                        });
+
+                        if (response.data.success) {
+                            sessionStorage.removeItem('pendingOrderPayload');
+                            dispatch(removeSelectedItems());
+                            setOrder(response.data.data);
+                            setLoading(false);
+                            setTimeout(() => setShowContent(true), 100);
+                            return;
+                        }
+                    }
+
+                    // Fallback or if already placed (e.g. concurrent webhook/refresh): retrieve from order history
+                    const historyResponse = await Axios({ ...SummaryApi.getOrderHistory });
+                    if (historyResponse.data.success) {
+                        const matchedOrder = historyResponse.data.data.find(
+                            (o) => o.paymentId === paymentIntentId
+                        );
+                        if (matchedOrder) {
+                            setOrder(matchedOrder);
+                            setLoading(false);
+                            setTimeout(() => setShowContent(true), 100);
+                            return;
+                        }
+                    }
+                } else {
+                    // Refresh fallback: fetch the user's latest order
+                    const historyResponse = await Axios({ ...SummaryApi.getOrderHistory });
+                    if (historyResponse.data.success && historyResponse.data.data.length > 0) {
+                        const latestOrder = historyResponse.data.data[0]; // Sorted by newest first on backend
+                        setOrder(latestOrder);
+                        setLoading(false);
+                        setTimeout(() => setShowContent(true), 100);
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error("Error retrieving order:", error);
+                toast.error("Failed to load order details.");
+            }
+
+            // If we couldn't resolve any order, go back to home page
+            toast.error("No valid order found.");
             navigate('/');
-            return;
-        }
-        // Staggered animation
-        const timer = setTimeout(() => setShowContent(true), 300);
-        const confettiTimer = setTimeout(() => setShowConfetti(false), 4000);
-        return () => {
-            clearTimeout(timer);
-            clearTimeout(confettiTimer);
         };
-    }, [order, navigate]);
+
+        handleOrderInitialization();
+    }, [location.search, navigate, dispatch, order]);
+
+    useEffect(() => {
+        if (order) {
+            const confettiTimer = setTimeout(() => setShowConfetti(false), 4000);
+            return () => clearTimeout(confettiTimer);
+        }
+    }, [order]);
+
+    if (loading) {
+        return (
+            <div className="min-h-[calc(100vh-96px)] bg-gradient-to-br from-emerald-50/50 via-white to-orange-50/30 flex flex-col items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4 max-w-sm w-full text-center">
+                    <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                    <h2 className="text-lg font-black text-slate-800 uppercase tracking-wider">Verifying Order...</h2>
+                    <p className="text-xs text-slate-400 font-bold">Please wait while we confirm your payment and secure your order.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!order) return null;
 

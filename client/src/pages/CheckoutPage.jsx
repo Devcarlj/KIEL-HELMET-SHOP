@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectSelectedCartItems, selectCartTotal, selectCartTotalSavings, selectCartOriginalTotal, removeSelectedItems } from '../store/cartSlice';
 import { setUserDetails, selectUser, deleteAddressAction } from '../store/userSlice';
@@ -91,6 +91,7 @@ const StripePaymentForm = ({ onPaymentSuccess, onPaymentError, placingOrder, set
 // ─── Main Checkout Page ──────────────────────────────────────────────────────
 const CheckoutPage = () => {
   const cartItems = useSelector(selectSelectedCartItems);
+  const orderPlacedRef = useRef(false);
   const cartTotal = useSelector(selectCartTotal);
   const cartSavings = useSelector(selectCartTotalSavings);
   const user = useSelector(selectUser);
@@ -136,7 +137,7 @@ const CheckoutPage = () => {
 
   // Redirect if no items selected
   useEffect(() => {
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !orderPlacedRef.current) {
       navigate('/');
       toast.error("No items selected for checkout");
     }
@@ -300,6 +301,8 @@ const CheckoutPage = () => {
 
       if (response.data.success) {
         toast.success('Salamat! Order placed successfully.');
+        sessionStorage.removeItem('pendingOrderPayload');
+        orderPlacedRef.current = true;
         dispatch(removeSelectedItems());
         navigate('/order-success', { state: { order: response.data.data } });
       }
@@ -332,6 +335,34 @@ const CheckoutPage = () => {
     if (!selectedAddress) {
       toast.error('Please select a shipping address');
       return;
+    }
+
+    const selectedAddr = addresses.find(a => a._id === selectedAddress);
+    if (selectedAddr) {
+      const orderPayload = {
+        products: cartItems.map(item => ({
+          productId: item.productId?._id,
+          name: item.productId?.name,
+          image: Array.isArray(item.productId?.image) ? item.productId.image : [item.productId?.image],
+          quantity: item.quantity,
+          price: Math.round((item.productId?.price || 0) * (1 - (item.productId?.discount || 0) / 100)),
+          variations: item.variations
+        })),
+        paymentMethod,
+        deliveryAddress: {
+          adress_line: selectedAddr.adress_line,
+          city: selectedAddr.city,
+          state: selectedAddr.state,
+          pincode: selectedAddr.pincode,
+          country: selectedAddr.country,
+          mobile: selectedAddr.mobile
+        },
+        subTotalAmount: cartTotal,
+        shippingFee,
+        totalAmount: finalTotal,
+        comment
+      };
+      sessionStorage.setItem('pendingOrderPayload', JSON.stringify(orderPayload));
     }
 
     if (paymentMethod === 'cod') {
