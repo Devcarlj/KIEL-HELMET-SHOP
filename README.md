@@ -32,3 +32,13 @@ Admin Pages
 * **Database:** MongoDB (Mongoose ODM)
 * **AI Integration:** Google Gemini API
 * **Deployment:** Vercel
+
+## Third Party Softwares & API
+* **Stripe API:** (Payment Processing)
+* **Resend API:** (Transactional Email Service)
+* **Cloudinary API:** (Media Cloud Storage)
+* **Google Generative AI / Gemini API:** (AI Chatbot)
+* **Barcode & QR Generator**
+* **MongoDB Atlas:** (Cloud Database)
+
+**-> [Live Demo / Actual Website](https://kiel-helmet-shop-gblv.vercel.app/))**
