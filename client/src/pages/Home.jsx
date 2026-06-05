@@ -1,6 +1,6 @@
 import React from 'react'
 import useSWR from 'swr'
-import banner from '../assets/bannerg1.png'
+import banner from '../assets/bannerg.png'
 import bannerMobile from '../assets/banner-mobile1.png'
 import CategoryListing from '../components/CategoryListing.jsx'
 import CategoryWiseProductDisplay from '../components/CategoryWiseProductDisplay.jsx'

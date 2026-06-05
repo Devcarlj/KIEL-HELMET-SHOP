@@ -12,14 +12,13 @@ const getGenAI = () => {
     return genAIInstance;
 };
 
-// ─── Model Fallback Ladder ───────────────────────────────────────────────────
-// Performance → Availability: try the best model first, drop down on quota hit
+// ─── Model Fallback Ladder ────
 const MODELS_LADDER = [
-    "gemini-3-flash-preview",   // 🥇 Best: fastest, most human (lower quota)
+    "gemini-3-flash-preview",   
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-2.0-flash",         // 🥈 Balanced: thinking model, high quota
-    "gemini-1.5-flash",         // 🥉 Indestructible: highest quota (~1,500/day)
+    "gemini-2.0-flash",         
+    "gemini-1.5-flash",         
 ];
 
 // ─── Per-Model Generation Config (Polymorphic Switch) ───────────────────────
